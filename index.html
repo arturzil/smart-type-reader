@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type</title>
+  <title>SmartBook Cyber-Type v1.2</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -11,7 +11,7 @@
       --accent-color: #00f0ff;
       --text-main: #e2e8f0;
       --text-dim: #475569;
-      --typed-color: #ef4444; /* Красный цвет для напечатанного текста */
+      --typed-color: #ef4444;
       --error-bg: rgba(239, 68, 68, 0.3);
       --ru-color: #94a3b8;
     }
@@ -62,12 +62,23 @@
       cursor: pointer;
     }
 
+    .version-tag {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--accent-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
     .nav-info {
       font-size: 0.8rem;
       color: var(--ru-color);
+      display: flex;
+      align-items: center;
     }
 
-    /* Карточка с текстом */
     .reader-card {
       background: rgba(0, 0, 0, 0.4);
       border-radius: 10px;
@@ -86,7 +97,6 @@
       cursor: pointer;
     }
 
-    /* Английский текст с наложением */
     .en-display {
       font-size: 1.35rem;
       line-height: 1.7;
@@ -97,13 +107,23 @@
       padding-right: 30px;
     }
 
+    .word-span {
+      display: inline-block;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 0 2px;
+      transition: background 0.15s;
+    }
+
+    .word-span:hover {
+      background: rgba(0, 240, 255, 0.15);
+    }
+
     .char {
       color: var(--text-main);
       border-bottom: 2px solid transparent;
-      transition: color 0.1s;
     }
 
-    /* Напечатанный текст окрашивается в красный */
     .char.typed {
       color: var(--typed-color);
     }
@@ -113,7 +133,6 @@
       color: #ff8888;
     }
 
-    /* Курсор на текущем символе */
     .char.cursor {
       border-bottom-color: var(--accent-color);
       animation: blink 1s infinite;
@@ -123,7 +142,6 @@
       50% { border-bottom-color: transparent; }
     }
 
-    /* Русский перевод */
     .ru-display {
       font-size: 1.05rem;
       color: var(--ru-color);
@@ -132,7 +150,6 @@
       padding-top: 10px;
     }
 
-    /* Ползунок навигации */
     .controls {
       display: flex;
       flex-direction: column;
@@ -150,7 +167,6 @@
       accent-color: var(--accent-color);
     }
 
-    /* Скрытый инпут для перехвата клавиатуры на мобиле */
     #hiddenInput {
       position: absolute;
       opacity: 0;
@@ -158,17 +174,59 @@
       left: -1000px;
     }
 
-    .word-popup {
+    /* Модальное окно перевода слова */
+    .word-modal {
       position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .word-modal-content {
       background: #1e293b;
       border: 1px solid var(--accent-color);
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px; right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--ru-color);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .modal-word {
+      font-size: 1.5rem;
+      color: var(--accent-color);
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .modal-trans {
+      font-size: 1.25rem;
+      color: #10b981;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .modal-details {
       font-size: 0.85rem;
-      display: none;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      color: var(--text-main);
+      line-height: 1.4;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 8px;
     }
   </style>
 </head>
@@ -180,7 +238,10 @@
       📁 Загрузить TXT
       <input type="file" id="fileInput" accept=".txt" style="display:none;">
     </label>
-    <div class="nav-info" id="navInfo">Предложение 1/1</div>
+    <div class="nav-info">
+      <span id="navInfo">Предложение 1/1</span>
+      <span class="version-tag">v1.2-beta</span>
+    </div>
   </div>
 
   <div class="reader-card">
@@ -198,7 +259,16 @@
   </div>
 </div>
 
-<div class="word-popup" id="wordPopup"></div>
+<!-- Модальное окно для слова -->
+<div class="word-modal" id="wordModal" onclick="closeModal()">
+  <div class="word-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-word" id="modalWord">Word</div>
+    <div class="modal-trans" id="modalTrans">Загрузка...</div>
+    <div class="modal-details" id="modalDetails"></div>
+  </div>
+</div>
+
 <input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
 
 <script>
@@ -209,12 +279,10 @@
   ];
   
   let currentIndex = 0;
-  let cursorIndex = 0;
   let currentWordIndex = -1;
   const synth = window.speechSynthesis;
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Загрузка сохраненного прогресса
   const savedIndex = localStorage.getItem('smartbook_index');
   if (savedIndex) currentIndex = parseInt(savedIndex);
 
@@ -223,9 +291,7 @@
   const hiddenInput = document.getElementById('hiddenInput');
   const slider = document.getElementById('sentenceSlider');
   const navInfo = document.getElementById('navInfo');
-  const wordPopup = document.getElementById('wordPopup');
 
-  // Звук ошибки
   function playErrorSound() {
     try {
       const osc = audioCtx.createOscillator();
@@ -240,7 +306,6 @@
     } catch(e) {}
   }
 
-  // Озвучка слов/предложений
   function speak(text) {
     if (!synth) return;
     synth.cancel();
@@ -255,51 +320,137 @@
     speak(sentences[currentIndex]);
   }
 
-  // Авто-перевод через Google API (бесплатный клиентский метод)
-  async function fetchTranslation(text) {
+  // Перевод предложений
+  async function fetchContextTranslation(index) {
     ruDisplay.textContent = "Переводим...";
+    const curr = sentences[index];
+
     try {
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`);
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(curr)}`);
       const data = await res.json();
-      ruDisplay.textContent = data[0].map(x => x[0]).join('');
+      let fullTrans = "";
+      if (data && data[0]) {
+        data[0].forEach(item => {
+          if (item[0]) fullTrans += item[0];
+        });
+      }
+      ruDisplay.textContent = fullTrans || "Не удалось получить перевод";
     } catch(e) {
-      ruDisplay.textContent = "Ошибка перевода (проверьте сеть)";
+      ruDisplay.textContent = "Ошибка подключения к сервису перевода";
     }
   }
 
-  // Отрисовка текста
+  // Перевод кликнутого слова
+  async function inspectWord(wordStr, event) {
+    if (event) event.stopPropagation();
+    
+    const cleanWord = wordStr.replace(/[^a-zA-Z]/g, "").trim();
+    if (!cleanWord) return;
+
+    document.getElementById('modalWord').textContent = cleanWord;
+    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
+    document.getElementById('modalDetails').textContent = "";
+    document.getElementById('wordModal').style.display = 'flex';
+
+    speak(cleanWord);
+
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
+      const data = await res.json();
+      
+      let wordTranslation = "";
+      if (data && data[0] && data[0][0] && data[0][0][0]) {
+        wordTranslation = data[0][0][0];
+      }
+      document.getElementById('modalTrans').textContent = wordTranslation || "Перевод не найден";
+    } catch(e) {
+      document.getElementById('modalTrans').textContent = "Ошибка получения перевода";
+    }
+
+    // Запрос словаря для части речи
+    try {
+      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord.toLowerCase()}`);
+      if (dictRes.ok) {
+        const dictData = await dictRes.json();
+        const entry = dictData[0];
+        let detailsHtml = "";
+        if (entry.meanings) {
+          entry.meanings.slice(0, 2).forEach(m => {
+            if (m.definitions && m.definitions[0]) {
+              detailsHtml += `<div style="margin-top:4px;"><b>[${m.partOfSpeech}]</b> ${m.definitions[0].definition}</div>`;
+            }
+          });
+        }
+        document.getElementById('modalDetails').innerHTML = detailsHtml;
+      }
+    } catch(e) {}
+  }
+
+  function closeModal() {
+    document.getElementById('wordModal').style.display = 'none';
+    focusInput();
+  }
+
   function render() {
     const text = sentences[currentIndex];
     enDisplay.innerHTML = '';
-    cursorIndex = Math.min(cursorIndex, text.length);
+    
+    let globalCharIndex = 0;
+    const words = text.split(' ');
 
-    text.split('').forEach((char, idx) => {
-      const span = document.createElement('span');
-      span.className = 'char';
-      span.textContent = char;
+    words.forEach((word, wIdx) => {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word-span';
 
-      if (idx < hiddenInput.value.length) {
-        if (hiddenInput.value[idx] === text[idx]) {
-          span.classList.add('typed');
-        } else {
-          span.classList.add('error');
+      wordSpan.addEventListener('click', (e) => inspectWord(word, e));
+
+      word.split('').forEach((char) => {
+        const charIdx = globalCharIndex;
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = char;
+
+        if (charIdx < hiddenInput.value.length) {
+          if (hiddenInput.value[charIdx] === text[charIdx]) {
+            span.classList.add('typed');
+          } else {
+            span.classList.add('error');
+          }
         }
-      }
 
-      if (idx === hiddenInput.value.length) {
-        span.classList.add('cursor');
-      }
+        if (charIdx === hiddenInput.value.length) {
+          span.classList.add('cursor');
+        }
 
-      // Клик по символу/слову для смены курсора
-      span.addEventListener('click', (e) => {
-        e.stopPropagation();
-        setCursorToChar(idx);
+        wordSpan.appendChild(span);
+        globalCharIndex++;
       });
 
-      enDisplay.appendChild(span);
+      enDisplay.appendChild(wordSpan);
+
+      if (wIdx < words.length - 1) {
+        const spaceCharIdx = globalCharIndex;
+        const spaceSpan = document.createElement('span');
+        spaceSpan.className = 'char';
+        spaceSpan.textContent = ' ';
+
+        if (spaceCharIdx < hiddenInput.value.length) {
+          if (hiddenInput.value[spaceCharIdx] === text[spaceCharIdx]) {
+            spaceSpan.classList.add('typed');
+          } else {
+            spaceSpan.classList.add('error');
+          }
+        }
+
+        if (spaceCharIdx === hiddenInput.value.length) {
+          spaceSpan.classList.add('cursor');
+        }
+
+        enDisplay.appendChild(spaceSpan);
+        globalCharIndex++;
+      }
     });
 
-    // Если конец предложения
     if (hiddenInput.value === text && text.length > 0) {
       setTimeout(() => {
         nextSentence();
@@ -311,14 +462,6 @@
     navInfo.textContent = `Предложение ${currentIndex + 1}/${sentences.length}`;
   }
 
-  function setCursorToChar(idx) {
-    hiddenInput.value = sentences[currentIndex].substring(0, idx);
-    checkWordPronunciation();
-    render();
-    focusInput();
-  }
-
-  // Проверка и озвучка текущего слова перед набором
   function checkWordPronunciation() {
     const text = sentences[currentIndex];
     const typed = hiddenInput.value;
@@ -336,17 +479,16 @@
         }
         break;
       }
-      charCount = wordEnd + 1; // + пробел
+      charCount = wordEnd + 1;
     }
   }
 
   function loadSentence(index) {
     currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
-    cursorIndex = 0;
     currentWordIndex = -1;
     hiddenInput.value = '';
     localStorage.setItem('smartbook_index', currentIndex);
-    fetchTranslation(sentences[currentIndex]);
+    fetchContextTranslation(currentIndex);
     render();
     speakSentence();
   }
@@ -361,8 +503,7 @@
     if (currentIndex > 0) loadSentence(currentIndex - 1);
   }
 
-  // Обработка ввода
-  hiddenInput.addEventListener('input', (e) => {
+  hiddenInput.addEventListener('input', () => {
     const text = sentences[currentIndex];
     const val = hiddenInput.value;
     const lastTypedChar = val[val.length - 1];
@@ -377,7 +518,6 @@
     render();
   });
 
-  // Загрузка текстовых файлов (.txt)
   document.getElementById('fileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -385,7 +525,6 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const rawText = evt.target.result;
-      // Разбиваем книгу на предложения по точкам, знакам ! и ?
       sentences = rawText
         .replace(/\r?\n|\r/g, " ")
         .split(/(?<=[.!?])\s+/)
@@ -407,7 +546,6 @@
     hiddenInput.focus();
   }
 
-  // Инициализация при загрузке
   loadSentence(currentIndex);
 </script>
 </body>
