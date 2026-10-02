@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v1.3</title>
+  <title>SmartBook Cyber-Type v2.0</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -11,8 +11,9 @@
       --accent-color: #00f0ff;
       --text-main: #e2e8f0;
       --text-dim: #475569;
-      --typed-color: #ef4444;
-      --error-bg: rgba(239, 68, 68, 0.3);
+      --typed-color: #10b981; /* Зеленый для правильных букв */
+      --error-bg: rgba(239, 68, 68, 0.35);
+      --error-color: #f87171;
       --ru-color: #94a3b8;
     }
 
@@ -28,7 +29,7 @@
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* Фиксируем контейнер вверху экрана */
+      align-items: flex-start;
       min-height: 100vh;
       padding: 15px 10px;
     }
@@ -51,9 +52,17 @@
       margin-bottom: 12px;
       padding-bottom: 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .file-btn {
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .file-btn, .icon-btn {
       background: rgba(0, 240, 255, 0.1);
       border: 1px solid var(--accent-color);
       color: var(--accent-color);
@@ -61,6 +70,9 @@
       border-radius: 6px;
       font-size: 0.8rem;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .version-tag {
@@ -70,7 +82,6 @@
       border-radius: 4px;
       font-size: 0.7rem;
       font-weight: bold;
-      margin-left: 8px;
     }
 
     .nav-info {
@@ -78,6 +89,7 @@
       color: var(--ru-color);
       display: flex;
       align-items: center;
+      gap: 8px;
     }
 
     .reader-card {
@@ -131,7 +143,7 @@
 
     .char.error {
       background-color: var(--error-bg);
-      color: #ff8888;
+      color: var(--error-color);
     }
 
     .char.cursor {
@@ -175,8 +187,8 @@
       left: -1000px;
     }
 
-    /* Модальное окно перевода слова */
-    .word-modal {
+    /* Модальные окна */
+    .modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.75);
@@ -187,12 +199,12 @@
       padding: 20px;
     }
 
-    .word-modal-content {
+    .modal-content {
       background: #1e293b;
       border: 1px solid var(--accent-color);
       border-radius: 12px;
       padding: 20px;
-      max-width: 380px;
+      max-width: 420px;
       width: 100%;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
       position: relative;
@@ -206,6 +218,38 @@
       color: var(--ru-color);
       font-size: 1.2rem;
       cursor: pointer;
+    }
+
+    .setting-row {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .setting-row label {
+      font-size: 0.85rem;
+      color: var(--ru-color);
+    }
+
+    .setting-row select, .setting-row input[type="range"] {
+      background: #0d0f17;
+      color: var(--text-main);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .danger-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
     }
 
     .modal-word {
@@ -235,13 +279,16 @@
 
 <div class="container" onclick="focusInput()">
   <div class="top-bar">
-    <label class="file-btn">
-      📁 Загрузить TXT
-      <input type="file" id="fileInput" accept=".txt" style="display:none;">
-    </label>
+    <div class="btn-group">
+      <label class="file-btn">
+        📁 TXT
+        <input type="file" id="fileInput" accept=".txt" style="display:none;">
+      </label>
+      <button class="icon-btn" onclick="openSettings(event)">⚙️ Настройки</button>
+    </div>
     <div class="nav-info">
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v1.3-beta</span>
+      <span class="version-tag">v2.0</span>
     </div>
   </div>
 
@@ -260,10 +307,30 @@
   </div>
 </div>
 
-<!-- Модальное окно для слова -->
-<div class="word-modal" id="wordModal" onclick="closeModal()">
-  <div class="word-modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeModal()">✕</button>
+<!-- Окно настроек -->
+<div class="modal" id="settingsModal" onclick="closeModal('settingsModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <h3 style="color: var(--accent-color); margin-bottom: 10px;">Настройки</h3>
+    
+    <div class="setting-row">
+      <label for="voiceSelect">Голос озвучки:</label>
+      <select id="voiceSelect"></select>
+    </div>
+
+    <div class="setting-row">
+      <label for="rateInput">Скорость речи: <span id="rateVal">0.9x</span></label>
+      <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9">
+    </div>
+
+    <button class="danger-btn" onclick="clearBookData()">🗑️ Удалить сохраненную книгу</button>
+  </div>
+</div>
+
+<!-- Модальное окно перевода слова -->
+<div class="modal" id="wordModal" onclick="closeModal('wordModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('wordModal')">✕</button>
     <div class="modal-word" id="modalWord">Word</div>
     <div class="modal-trans" id="modalTrans">Загрузка...</div>
     <div class="modal-details" id="modalDetails"></div>
@@ -273,38 +340,87 @@
 <input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
 
 <script>
-  let sentences = [
+  let defaultSentences = [
     "If I survive this, I will need a very strong drink.",
     "The ship computer handles orbital navigation automatically.",
     "System diagnostics revealed a critical error in the main reactor."
   ];
-  
+
+  let sentences = defaultSentences;
   let currentIndex = 0;
   let currentWordIndex = -1;
+  let availableVoices = [];
+  let selectedVoice = null;
+  let speechRate = 0.9;
+
   const synth = window.speechSynthesis;
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  const savedIndex = localStorage.getItem('smartbook_index');
-  if (savedIndex) currentIndex = parseInt(savedIndex);
-
   const enDisplay = document.getElementById('enDisplay');
   const ruDisplay = document.getElementById('ruDisplay');
   const hiddenInput = document.getElementById('hiddenInput');
   const slider = document.getElementById('sentenceSlider');
   const navInfo = document.getElementById('navInfo');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const rateInput = document.getElementById('rateInput');
 
-  function playErrorSound() {
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.value = 150;
-      gain.gain.value = 0.1;
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
-    } catch(e) {}
+  // Очистка и нормализация символов
+  function cleanText(text) {
+    return text
+      .replace(/[’`′‘]/g, "'")
+      .replace(/[“”«»]/g, '"')
+      .replace(/[*_~^]/g, "") // удаляем звездочки и спецсимволы
+      .replace(/--+/g, " - ") // сдвоенное тире
+      .replace(/\s+/g, " ")   // убираем множественные пробелы
+      .trim();
+  }
+
+  // Загрузка голосов
+  function loadVoices() {
+    if (!synth) return;
+    const voices = synth.getVoices();
+    availableVoices = voices.filter(v => v.lang.startsWith('en'));
+    voiceSelect.innerHTML = '';
+    
+    availableVoices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(opt);
+    });
+
+    const savedVoiceIndex = localStorage.getItem('smartbook_voice');
+    if (savedVoiceIndex !== null && availableVoices[savedVoiceIndex]) {
+      voiceSelect.value = savedVoiceIndex;
+      selectedVoice = availableVoices[savedVoiceIndex];
+    } else if (availableVoices.length > 0) {
+      selectedVoice = availableVoices[0];
+    }
+  }
+
+  if (synth) {
+    synth.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  // Инициализация данных из localStorage
+  function initData() {
+    const savedBook = localStorage.getItem('smartbook_book');
+    if (savedBook) {
+      try {
+        sentences = JSON.parse(savedBook);
+      } catch(e) {
+        sentences = defaultSentences;
+      }
+    }
+
+    const savedIndex = localStorage.getItem('smartbook_index');
+    if (savedIndex !== null) currentIndex = parseInt(savedIndex);
+
+    const savedRate = localStorage.getItem('smartbook_rate');
+    if (savedRate !== null) {
+      speechRate = parseFloat(savedRate);
+      rateInput.value = speechRate;
+      document.getElementById('rateVal').textContent = `${speechRate}x`;
+    }
   }
 
   function speak(text) {
@@ -312,7 +428,8 @@
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    u.rate = 0.9;
+    u.rate = speechRate;
+    if (selectedVoice) u.voice = selectedVoice;
     synth.speak(u);
   }
 
@@ -384,13 +501,19 @@
     } catch(e) {}
   }
 
-  function closeModal() {
-    document.getElementById('wordModal').style.display = 'none';
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
     focusInput();
+  }
+
+  function openSettings(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('settingsModal').style.display = 'flex';
   }
 
   function render() {
     const text = sentences[currentIndex];
+    const typed = cleanText(hiddenInput.value);
     enDisplay.innerHTML = '';
     
     let globalCharIndex = 0;
@@ -399,7 +522,6 @@
     words.forEach((word, wIdx) => {
       const wordSpan = document.createElement('span');
       wordSpan.className = 'word-span';
-
       wordSpan.addEventListener('click', (e) => inspectWord(word, e));
 
       word.split('').forEach((char) => {
@@ -408,15 +530,15 @@
         span.className = 'char';
         span.textContent = char;
 
-        if (charIdx < hiddenInput.value.length) {
-          if (hiddenInput.value[charIdx] === text[charIdx]) {
+        if (charIdx < typed.length) {
+          if (typed[charIdx] === text[charIdx]) {
             span.classList.add('typed');
           } else {
             span.classList.add('error');
           }
         }
 
-        if (charIdx === hiddenInput.value.length) {
+        if (charIdx === typed.length) {
           span.classList.add('cursor');
         }
 
@@ -432,15 +554,15 @@
         spaceSpan.className = 'char';
         spaceSpan.textContent = ' ';
 
-        if (spaceCharIdx < hiddenInput.value.length) {
-          if (hiddenInput.value[spaceCharIdx] === text[spaceCharIdx]) {
+        if (spaceCharIdx < typed.length) {
+          if (typed[spaceCharIdx] === text[spaceCharIdx]) {
             spaceSpan.classList.add('typed');
           } else {
             spaceSpan.classList.add('error');
           }
         }
 
-        if (spaceCharIdx === hiddenInput.value.length) {
+        if (spaceCharIdx === typed.length) {
           spaceSpan.classList.add('cursor');
         }
 
@@ -449,20 +571,21 @@
       }
     });
 
-    if (hiddenInput.value === text && text.length > 0) {
+    // Переход к следующему предложению при полном заполнении (даже если есть ошибки)
+    if (typed.length >= text.length && text.length > 0) {
       setTimeout(() => {
         nextSentence();
-      }, 300);
+      }, 350);
     }
 
-    slider.max = sentences.length - 1;
+    slider.max = Math.max(0, sentences.length - 1);
     slider.value = currentIndex;
     navInfo.textContent = `Предложение ${currentIndex + 1}/${sentences.length}`;
   }
 
   function checkWordPronunciation() {
     const text = sentences[currentIndex];
-    const typed = hiddenInput.value;
+    const typed = cleanText(hiddenInput.value);
     const words = text.split(' ');
     
     let charCount = 0;
@@ -501,18 +624,19 @@
     if (currentIndex > 0) loadSentence(currentIndex - 1);
   }
 
-  hiddenInput.addEventListener('input', () => {
-    const text = sentences[currentIndex];
-    const val = hiddenInput.value;
-    const lastTypedChar = val[val.length - 1];
-    const expectedChar = text[val.length - 1];
-
-    if (lastTypedChar && lastTypedChar !== expectedChar) {
-      playErrorSound();
-    } else {
-      checkWordPronunciation();
+  function clearBookData() {
+    if (confirm("Вы уверены, что хотите сбросить сохраненную книгу?")) {
+      localStorage.removeItem('smartbook_book');
+      localStorage.removeItem('smartbook_index');
+      sentences = defaultSentences;
+      loadSentence(0);
+      closeModal('settingsModal');
     }
+  }
 
+  hiddenInput.addEventListener('input', () => {
+    hiddenInput.value = cleanText(hiddenInput.value);
+    checkWordPronunciation();
     render();
   });
 
@@ -523,13 +647,15 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const rawText = evt.target.result;
-      sentences = rawText
+      const parsedSentences = cleanText(rawText)
         .replace(/\r?\n|\r/g, " ")
         .split(/(?<=[.!?])\s+/)
         .map(s => s.trim())
         .filter(s => s.length > 5);
 
-      if (sentences.length > 0) {
+      if (parsedSentences.length > 0) {
+        sentences = parsedSentences;
+        localStorage.setItem('smartbook_book', JSON.stringify(sentences));
         loadSentence(0);
       }
     };
@@ -540,10 +666,23 @@
     loadSentence(parseInt(e.target.value));
   });
 
+  voiceSelect.addEventListener('change', (e) => {
+    const idx = parseInt(e.target.value);
+    selectedVoice = availableVoices[idx];
+    localStorage.setItem('smartbook_voice', idx);
+  });
+
+  rateInput.addEventListener('input', (e) => {
+    speechRate = parseFloat(e.target.value);
+    document.getElementById('rateVal').textContent = `${speechRate}x`;
+    localStorage.setItem('smartbook_rate', speechRate);
+  });
+
   function focusInput() {
     hiddenInput.focus();
   }
 
+  initData();
   loadSentence(currentIndex);
 </script>
 </body>
