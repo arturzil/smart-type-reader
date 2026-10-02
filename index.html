@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.1</title>
+  <title>SmartBook Cyber-Type v2.3</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -287,7 +287,7 @@
     </div>
     <div class="nav-info">
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.1</span>
+      <span class="version-tag">v2.3</span>
     </div>
   </div>
 
@@ -361,22 +361,23 @@
   const voiceSelect = document.getElementById('voiceSelect');
   const rateInput = document.getElementById('rateInput');
 
-  // Нормализация кавычек и спецсимволов текста
+  // Нормализация кавычек и длинных тире
   function normalizeText(text) {
     return text
       .replace(/[’`′‘]/g, "'")
       .replace(/[“”«»]/g, '"')
+      .replace(/[—–]/g, "-")
       .replace(/[*_~^]/g, "")
-      .replace(/--+/g, " - ")
+      .replace(/--+/g, "-")
       .replace(/\s+/g, " ");
   }
 
-  // Очистка ввода пользователя без удаления конечных пробелов
+  // Очистка ввода пользователя без блокировки пробелов
   function cleanUserInput(input) {
     return input
       .replace(/[’`′‘]/g, "'")
       .replace(/[“”«»]/g, '"')
-      .replace(/\s+/g, " ");
+      .replace(/[—–]/g, "-");
   }
 
   function loadVoices() {
