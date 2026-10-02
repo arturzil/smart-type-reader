@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.0</title>
+  <title>SmartBook Cyber-Type v2.1</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -11,7 +11,7 @@
       --accent-color: #00f0ff;
       --text-main: #e2e8f0;
       --text-dim: #475569;
-      --typed-color: #10b981; /* Зеленый для правильных букв */
+      --typed-color: #10b981;
       --error-bg: rgba(239, 68, 68, 0.35);
       --error-color: #f87171;
       --ru-color: #94a3b8;
@@ -187,7 +187,6 @@
       left: -1000px;
     }
 
-    /* Модальные окна */
     .modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -288,7 +287,7 @@
     </div>
     <div class="nav-info">
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.0</span>
+      <span class="version-tag">v2.1</span>
     </div>
   </div>
 
@@ -362,18 +361,24 @@
   const voiceSelect = document.getElementById('voiceSelect');
   const rateInput = document.getElementById('rateInput');
 
-  // Очистка и нормализация символов
-  function cleanText(text) {
+  // Нормализация кавычек и спецсимволов текста
+  function normalizeText(text) {
     return text
       .replace(/[’`′‘]/g, "'")
       .replace(/[“”«»]/g, '"')
-      .replace(/[*_~^]/g, "") // удаляем звездочки и спецсимволы
-      .replace(/--+/g, " - ") // сдвоенное тире
-      .replace(/\s+/g, " ")   // убираем множественные пробелы
-      .trim();
+      .replace(/[*_~^]/g, "")
+      .replace(/--+/g, " - ")
+      .replace(/\s+/g, " ");
   }
 
-  // Загрузка голосов
+  // Очистка ввода пользователя без удаления конечных пробелов
+  function cleanUserInput(input) {
+    return input
+      .replace(/[’`′‘]/g, "'")
+      .replace(/[“”«»]/g, '"')
+      .replace(/\s+/g, " ");
+  }
+
   function loadVoices() {
     if (!synth) return;
     const voices = synth.getVoices();
@@ -401,7 +406,6 @@
     loadVoices();
   }
 
-  // Инициализация данных из localStorage
   function initData() {
     const savedBook = localStorage.getItem('smartbook_book');
     if (savedBook) {
@@ -513,7 +517,7 @@
 
   function render() {
     const text = sentences[currentIndex];
-    const typed = cleanText(hiddenInput.value);
+    const typed = hiddenInput.value;
     enDisplay.innerHTML = '';
     
     let globalCharIndex = 0;
@@ -571,11 +575,10 @@
       }
     });
 
-    // Переход к следующему предложению при полном заполнении (даже если есть ошибки)
     if (typed.length >= text.length && text.length > 0) {
       setTimeout(() => {
         nextSentence();
-      }, 350);
+      }, 300);
     }
 
     slider.max = Math.max(0, sentences.length - 1);
@@ -585,7 +588,7 @@
 
   function checkWordPronunciation() {
     const text = sentences[currentIndex];
-    const typed = cleanText(hiddenInput.value);
+    const typed = hiddenInput.value;
     const words = text.split(' ');
     
     let charCount = 0;
@@ -635,7 +638,7 @@
   }
 
   hiddenInput.addEventListener('input', () => {
-    hiddenInput.value = cleanText(hiddenInput.value);
+    hiddenInput.value = cleanUserInput(hiddenInput.value);
     checkWordPronunciation();
     render();
   });
@@ -647,7 +650,7 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const rawText = evt.target.result;
-      const parsedSentences = cleanText(rawText)
+      const parsedSentences = normalizeText(rawText)
         .replace(/\r?\n|\r/g, " ")
         .split(/(?<=[.!?])\s+/)
         .map(s => s.trim())
