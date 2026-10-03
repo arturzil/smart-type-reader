@@ -312,7 +312,7 @@
   <div class="reader-card">
     <button class="speak-btn" onclick="speakSentence(event)">🔊</button>
     <div class="en-display" id="enDisplay"></div>
-    <div class="ru-display" id="ruDisplay">Загрузка перевода Яндекс...</div>
+    <div class="ru-display" id="ruDisplay">Загрузка перевода...</div>
   </div>
 
   <div class="controls">
@@ -595,7 +595,7 @@
       }
     } catch(e) {}
 
-    // Резервный источник (если сработало ограничение)
+    // Резервный источник
     try {
       const res2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ru`);
       if (res2.ok) {
@@ -610,6 +610,7 @@
   }
 
   async function fetchContextTranslation(index) {
+    // --- 1. ОФЛАЙН РЕЖИМ (JSON) ---
     if (isOfflineMode) {
       if (offlineSentencesData[index] && (offlineSentencesData[index].ru || offlineSentencesData[index].translation)) {
         ruDisplay.textContent = offlineSentencesData[index].ru || offlineSentencesData[index].translation;
@@ -619,6 +620,7 @@
       return;
     }
 
+    // --- 2. ОНЛАЙН РЕЖИМ (TXT / Яндекс) ---
     ruDisplay.textContent = "Загрузка перевода (Яндекс)...";
     const curr = sentences[index];
     if (!curr) return;
@@ -654,6 +656,7 @@
     return null;
   }
 
+  // --- ОБРАБОТЧИК КЛИКА ПО СЛОВУ С РАЗДЕЛЕНИЕМ ЛОГИКИ ---
   async function inspectWord(wordStr, event) {
     if (event) event.stopPropagation();
     
@@ -669,8 +672,17 @@
     let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
     speak(wordToSpeak);
 
+    // ==========================================
+    // ЛОГИКА 1: ОФЛАЙН РЕЖИМ (.JSON)
+    // ==========================================
     if (isOfflineMode) {
-      const wordInfo = findInOfflineDict(rawWord) || findInOfflineDict(cleanWord);
+      let wordInfo = findInOfflineDict(rawWord) || findInOfflineDict(cleanWord);
+      
+      // Проверка на случай использования глобального объекта window.EMBEDDED_DICTIONARY
+      if (!wordInfo && window.EMBEDDED_DICTIONARY) {
+        wordInfo = window.EMBEDDED_DICTIONARY[cleanWord] || window.EMBEDDED_DICTIONARY[rawWord.toLowerCase()];
+      }
+
       if (wordInfo) {
         const ruText = typeof wordInfo === 'string' ? wordInfo : (wordInfo.ru || wordInfo.translation || wordInfo.val || JSON.stringify(wordInfo));
         const detailsText = typeof wordInfo === 'object' ? (wordInfo.details || wordInfo.definition || wordInfo.ex || "") : "";
@@ -683,8 +695,10 @@
       return;
     }
 
-    // Онлайн перевод через Яндекс
-    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
+    // ==========================================
+    // ЛОГИКА 2: ОНЛАЙН РЕЖИМ (.TXT / ЯНДЕКС)
+    // ==========================================
+    document.getElementById('modalTrans').textContent = "Загрузка перевода (Яндекс)...";
     const wordTrans = await yandexTranslateText(cleanWord);
     
     if (wordTrans) {
@@ -693,7 +707,7 @@
       document.getElementById('modalTrans').textContent = "Не удалось перевести слово";
     }
 
-    // Подгрузка подробных значений слова (Dictionary API)
+    // Дополнительное получение грамматических подробностей (Dictionary API)
     try {
       const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
       if (dictRes.ok) {
