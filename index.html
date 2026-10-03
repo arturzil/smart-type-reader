@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.5</title>
+  <title>SmartBook Cyber-Type v2.6</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -297,7 +297,7 @@
     <div class="nav-info">
       <span id="modeTag" class="mode-tag">Онлайн</span>
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.5</span>
+      <span class="version-tag">v2.6</span>
     </div>
   </div>
 
@@ -700,12 +700,10 @@
       }
     });
 
-    // Автоматическое перелистывание при безупречном вводе
+    // Автоматическое перелистывание при вводе предложения до конца (даже при наличии ошибок)
     if (typed.length >= text.length && !isTransitioning) {
-      if (typed === text) {
-        isTransitioning = true;
-        setTimeout(() => { nextSentence(null); }, 300);
-      }
+      isTransitioning = true;
+      setTimeout(() => { nextSentence(null); }, 300);
     }
 
     slider.max = Math.max(0, sentences.length - 1);
