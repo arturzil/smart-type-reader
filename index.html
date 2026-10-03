@@ -1,370 +1,879 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBook Cyber-Type v2.6</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
-            --text-color: #e2e8f0;
-            --accent-color: #38bdf8;
-            --hover-color: #0284c7;
-            --ru-text-color: #94a3b8;
-            --border-color: #334155;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SmartBook Cyber-Type v2.6</title>
+  <style>
+    :root {
+      --bg-color: #0d0f17;
+      --card-bg: #161925;
+      --accent-color: #00f0ff;
+      --text-main: #e2e8f0;
+      --text-dim: #475569;
+      --typed-color: #10b981;
+      --error-bg: rgba(239, 68, 68, 0.35);
+      --error-color: #f87171;
+      --ru-color: #94a3b8;
+      --ai-color: #b026ff;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', system-ui, monospace;
+    }
 
-        .container {
-            max-width: 900px;
-            width: 100%;
-        }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 15px 10px;
+    }
 
-        header {
-            background-color: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .container {
+      background-color: var(--card-bg);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 14px;
+      padding: 16px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      margin-top: 10px;
+    }
 
-        .mode-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
 
-        .mode-offline { background-color: #15803d; color: #fff; }
-        .mode-online { background-color: #b45309; color: #fff; }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-        .file-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    .file-btn, .icon-btn {
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
 
-        .file-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9em;
-        }
+    .ai-top-btn {
+      background: rgba(176, 38, 255, 0.1);
+      border-color: var(--ai-color);
+      color: var(--ai-color);
+      font-size: 1.1rem;
+      padding: 4px 10px;
+    }
+    .ai-top-btn:hover { background: rgba(176, 38, 255, 0.25); }
 
-        input[type="file"] {
-            font-size: 0.85em;
-        }
+    .version-tag {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--accent-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
 
-        #reader {
-            background-color: var(--panel-bg);
-            padding: 30px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            line-height: 1.8;
-            font-size: 1.1em;
-            min-height: 400px;
-        }
+    .mode-tag {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--typed-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
 
-        .sentence-block {
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+    .nav-info {
+      font-size: 0.8rem;
+      color: var(--ru-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .en-sentence {
-            display: block;
-            margin-bottom: 4px;
-        }
+    .reader-card {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 15px;
+      position: relative;
+    }
 
-        .ru-sentence {
-            display: block;
-            color: var(--ru-text-color);
-            font-size: 0.95em;
-            font-style: italic;
-        }
+    .speak-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
 
-        .word {
-            cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
-        }
+    .en-display {
+      font-size: 1.35rem;
+      line-height: 1.7;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+      user-select: none;
+      min-height: 60px;
+      padding-right: 30px;
+    }
 
-        .word:hover {
-            background-color: var(--accent-color);
-            color: #000;
-        }
+    .word-span {
+      display: inline-block;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 0 2px;
+      transition: background 0.15s;
+    }
 
-        /* Tooltip style */
-        #tooltip {
-            position: fixed;
-            display: none;
-            background-color: #090d16;
-            color: #fff;
-            padding: 10px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-color);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            z-index: 1000;
-            max-width: 300px;
-            pointer-events: none;
-        }
+    .word-span:hover {
+      background: rgba(0, 240, 255, 0.15);
+    }
 
-        .tooltip-word {
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 4px;
-        }
-    </style>
+    .char {
+      color: var(--text-main);
+      border-bottom: 2px solid transparent;
+    }
+
+    .char.typed { color: var(--typed-color); }
+    .char.error {
+      background-color: var(--error-bg);
+      color: var(--error-color);
+    }
+
+    .char.cursor {
+      border-bottom-color: var(--accent-color);
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink { 50% { border-bottom-color: transparent; } }
+
+    .ru-display {
+      font-size: 1.05rem;
+      color: var(--ru-color);
+      font-style: italic;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+    }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; }
+    .slider-wrapper { display: flex; align-items: center; gap: 10px; }
+    .slider { flex-grow: 1; accent-color: var(--accent-color); }
+    
+    #hiddenInput {
+      position: absolute;
+      opacity: 0;
+      top: -1000px;
+      left: -1000px;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--accent-color);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .ai-modal-content { border-color: var(--ai-color); }
+
+    .modal-close {
+      position: absolute;
+      top: 10px; right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--ru-color);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .setting-row { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .setting-row label { font-size: 0.85rem; color: var(--ru-color); }
+    .setting-row select, .setting-row input[type="range"] {
+      background: #0d0f17;
+      color: var(--text-main);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .danger-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .modal-word { font-size: 1.5rem; color: var(--accent-color); font-weight: bold; margin-bottom: 6px; }
+    .modal-trans { font-size: 1.25rem; color: #10b981; margin-bottom: 10px; font-weight: bold; }
+    .modal-details {
+      font-size: 0.85rem; color: var(--text-main);
+      line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
+    }
+
+    .ai-chat-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(176, 38, 255, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .ai-chat-box b { color: var(--accent-color); }
+    .ai-chat-box i { color: #a5b4fc; }
+    .ai-chat-box code { background: #000; padding: 2px 5px; border-radius: 4px; color: #10b981; }
+    
+    .ai-loading {
+      color: var(--ai-color);
+      font-style: italic;
+      text-align: center;
+      padding: 20px 0;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div>
-            <h2>SmartBook Cyber-Type v2.6</h2>
-            <span id="modeStatus" class="mode-badge mode-online">Режим: Не выбран</span>
-        </div>
-        <div class="file-inputs">
-            <div class="file-group">
-                <label><b>Офлайн (2x JSON):</b></label>
-                <input type="file" id="jsonFilesInput" multiple accept=".json">
-            </div>
-            <div class="file-group">
-                <label><b>Онлайн (1x TXT):</b></label>
-                <input type="file" id="txtFileInput" accept=".txt">
-            </div>
-        </div>
-    </header>
+<div class="container" onclick="focusInput()">
+  <div class="top-bar">
+    <div class="btn-group">
+      <label class="file-btn">
+        📁 Книга (.txt / .json)
+        <input type="file" id="fileInput" accept=".txt,.json" multiple style="display:none;">
+      </label>
+      <button class="icon-btn" onclick="openSettings(event)">⚙️ Настройки</button>
+      <button class="icon-btn ai-top-btn" onclick="callAITutor(event)" title="ИИ-Репетитор (Ctrl + Space)">🤖</button>
+    </div>
+    <div class="nav-info">
+      <span id="modeTag" class="mode-tag">Онлайн</span>
+      <span id="navInfo">Предложение 1/1</span>
+      <span class="version-tag">v2.6</span>
+    </div>
+  </div>
 
-    <main id="reader">
-        <p style="color: #64748b; text-align: center;">Выберите 2 JSON файла (книга + словарь) для офлайн-режима или 1 TXT файл для онлайн-режима.</p>
-    </main>
+  <div class="reader-card">
+    <button class="speak-btn" onclick="speakSentence(event)">🔊</button>
+    <div class="en-display" id="enDisplay"></div>
+    <div class="ru-display" id="ruDisplay">Загрузка перевода...</div>
+  </div>
+
+  <div class="controls">
+    <div class="slider-wrapper">
+      <button class="file-btn" onclick="prevSentence(event)">◄</button>
+      <input type="range" id="sentenceSlider" class="slider" min="0" value="0">
+      <button class="file-btn" onclick="nextSentence(event)">►</button>
+    </div>
+  </div>
 </div>
 
-<div id="tooltip">
-    <div id="tooltipWord" class="tooltip-word"></div>
-    <div id="tooltipText"></div>
+<div class="modal" id="settingsModal" onclick="closeModal('settingsModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <h3 style="color: var(--accent-color); margin-bottom: 10px;">Настройки</h3>
+    
+    <div class="setting-row">
+      <label for="voiceSelect">Голос озвучки:</label>
+      <select id="voiceSelect"></select>
+    </div>
+
+    <div class="setting-row">
+      <label for="rateInput">Скорость речи: <span id="rateVal">0.9x</span></label>
+      <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9">
+    </div>
+
+    <button class="danger-btn" onclick="clearBookData()">🗑️️ Сбросить сохраненные данные</button>
+  </div>
 </div>
+
+<div class="modal" id="wordModal" onclick="closeModal('wordModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('wordModal')">✕</button>
+    <div class="modal-word" id="modalWord">Word</div>
+    <div class="modal-trans" id="modalTrans">Загрузка...</div>
+    <div class="modal-details" id="modalDetails"></div>
+  </div>
+</div>
+
+<div class="modal" id="aiModal" onclick="closeModal('aiModal')">
+  <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
+    <h3 style="color: var(--ai-color); margin-bottom: 5px;">🤖 ИИ-Репетитор</h3>
+    <p style="font-size: 0.8rem; color: var(--ru-color);">
+      Грамматический анализ и разбор предложения
+    </p>
+    
+    <div class="ai-chat-box" id="aiResponseContent"></div>
+  </div>
+</div>
+
+<input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
 
 <script>
-    // Состояние приложения
-    let isOfflineMode = false;
-    let offlineDictionary = {};
-    let bookData = []; // [{ en: "...", ru: "..." }]
+  let defaultSentences = [
+    "If I survive this, I will need a very strong drink.",
+    "The ship computer handles orbital navigation automatically.",
+    "System diagnostics revealed a critical error in the main reactor."
+  ];
 
-    const readerEl = document.getElementById('reader');
-    const modeStatusEl = document.getElementById('modeStatus');
-    const tooltipEl = document.getElementById('tooltip');
-    const tooltipWordEl = document.getElementById('tooltipWord');
-    const tooltipTextEl = document.getElementById('tooltipText');
+  let sentences = defaultSentences;
+  let offlineSentencesData = [];
+  let offlineDictionaryData = {};
+  let isOfflineMode = false;
 
-    // --- ОБРАБОТКА ЗАГРУЗКИ ФАЙЛОВ ---
+  let currentIndex = 0;
+  let currentWordIndex = -1;
+  let availableVoices = [];
+  let selectedVoice = null;
+  let speechRate = 0.9;
+  let isTransitioning = false;
 
-    // 1. Загрузка 2x JSON (ОФЛАЙН РЕЖИМ)
-    document.getElementById('jsonFilesInput').addEventListener('change', async function(e) {
-        const files = Array.from(e.target.files);
-        if (files.length < 2) {
-            alert("Пожалуйста, выберите одновременно ДВА JSON-файла: книгу и словарь.");
-            return;
-        }
+  const synth = window.speechSynthesis;
+  const enDisplay = document.getElementById('enDisplay');
+  const ruDisplay = document.getElementById('ruDisplay');
+  const hiddenInput = document.getElementById('hiddenInput');
+  const slider = document.getElementById('sentenceSlider');
+  const navInfo = document.getElementById('navInfo');
+  const modeTag = document.getElementById('modeTag');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const rateInput = document.getElementById('rateInput');
 
+  const pronunciationMap = { 'a': 'uh', 'i': 'eye' };
+
+  function normalizeText(text) {
+    return text
+      .replace(/[’`′‘]/g, "'")
+      .replace(/[“”«»]/g, '"')
+      .replace(/[—–]/g, "-")
+      .replace(/[*_~^]/g, "")
+      .replace(/--+/g, "-")
+      .replace(/\s+/g, " ");
+  }
+
+  function cleanUserInput(input) {
+    return input
+      .replace(/[’`′‘]/g, "'")
+      .replace(/[“”«»]/g, '"')
+      .replace(/[—–]/g, "-");
+  }
+
+  function loadVoices() {
+    if (!synth) return;
+    const voices = synth.getVoices();
+    availableVoices = voices.filter(v => v.lang.startsWith('en'));
+    voiceSelect.innerHTML = '';
+    
+    availableVoices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(opt);
+    });
+
+    const savedVoiceIndex = localStorage.getItem('smartbook_voice');
+    if (savedVoiceIndex !== null && availableVoices[savedVoiceIndex]) {
+      voiceSelect.value = savedVoiceIndex;
+      selectedVoice = availableVoices[savedVoiceIndex];
+    } else if (availableVoices.length > 0) {
+      selectedVoice = availableVoices[0];
+    }
+  }
+
+  if (synth) {
+    synth.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function initData() {
+    const savedOfflineSentences = localStorage.getItem('smartbook_offline_sentences');
+    const savedOfflineDict = localStorage.getItem('smartbook_offline_dict');
+
+    if (savedOfflineSentences) {
+      try {
+        offlineSentencesData = JSON.parse(savedOfflineSentences);
+        offlineDictionaryData = savedOfflineDict ? JSON.parse(savedOfflineDict) : {};
         isOfflineMode = true;
-        updateModeUI("Офлайн (JSON)", "mode-offline");
-
-        let loadedBook = null;
-        let loadedDict = null;
-
-        for (const file of files) {
-            const text = await file.text();
-            const json = JSON.parse(text);
-
-            // Определение типа файла по структуре
-            if (Array.isArray(json) && json.length > 0 && ('en' in json[0] || 'en_text' in json[0])) {
-                loadedBook = json;
-            } else if (typeof json === 'object' && !Array.isArray(json)) {
-                loadedDict = json;
-            } else if (Array.isArray(json) && json.length > 0 && ('word' in json[0] || 'key' in json[0])) {
-                // Если словарь представлен массивом объектов [{word: "...", translation: "..."}]
-                loadedDict = {};
-                json.forEach(item => {
-                    const key = (item.word || item.key || '').toLowerCase();
-                    if (key) loadedDict[key] = item.translation || item.value || item.ru;
-                });
-            }
-        }
-
-        if (loadedBook) {
-            bookData = loadedBook.map(item => ({
-                en: item.en || item.en_text || '',
-                ru: item.ru || item.ru_text || ''
-            }));
-        }
-
-        if (loadedDict) {
-            // Приводим все ключи словаря к нижнему регистру для надежности поиска
-            offlineDictionary = {};
-            for (const [key, val] of Object.entries(loadedDict)) {
-                offlineDictionary[key.toLowerCase()] = val;
-            }
-        }
-
-        renderBook();
-    });
-
-    // 2. Загрузка TXT (ОНЛАЙН РЕЖИМ)
-    document.getElementById('txtFileInput').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
+        sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
+      } catch(e) {
         isOfflineMode = false;
-        offlineDictionary = {};
-        updateModeUI("Онлайн (TXT)", "mode-online");
-
-        const text = await file.text();
-        // Разбиваем TXT на условные предложения по точкам
-        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-        
-        bookData = sentences.map(s => ({
-            en: s.trim(),
-            ru: "" // В онлайн режиме перевод предложения отсутствует до запроса
-        }));
-
-        renderBook();
-    });
-
-    // --- РЕНДЕРИНГ ТЕКСТА ---
-
-    function renderBook() {
-        readerEl.innerHTML = '';
-        if (bookData.length === 0) {
-            readerEl.innerHTML = '<p>Ошибка чтения структуры файла.</p>';
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-
-        bookData.forEach((item) => {
-            const block = document.createElement('div');
-            block.className = 'sentence-block';
-
-            const enSpan = document.createElement('span');
-            enSpan.className = 'en-sentence';
-
-            // Оборачиваем каждое слово в span.word
-            const words = item.en.split(/(\s+)/);
-            words.forEach(chunk => {
-                if (/\s+/.test(chunk) || chunk === '') {
-                    enSpan.appendChild(document.createTextNode(chunk));
-                } else {
-                    const wordSpan = document.createElement('span');
-                    wordSpan.className = 'word';
-                    wordSpan.textContent = chunk;
-                    wordSpan.addEventListener('click', (e) => handleWordClick(e, chunk));
-                    enSpan.appendChild(wordSpan);
-                }
-            });
-
-            block.appendChild(enSpan);
-
-            // Если есть параллельный перевод предложения, отображаем его
-            if (item.ru) {
-                const ruSpan = document.createElement('span');
-                ruSpan.className = 'ru-sentence';
-                ruSpan.textContent = item.ru;
-                block.appendChild(ruSpan);
-            }
-
-            fragment.appendChild(block);
-        });
-
-        readerEl.appendChild(fragment);
-    }
-
-    // --- ОБРАБОТКА КЛИКА ПО СЛОВУ ---
-
-    async function handleWordClick(event, rawWord) {
-        // Очищаем слово от знаков препинания и приводим к нижнему регистру
-        const cleanWord = rawWord.toLowerCase().replace(/[^a-z0-9'-]/gi, '');
-        if (!cleanWord) return;
-
-        // Позиционируем плашку с переводом возле мыши
-        showTooltip(event.clientX, event.clientY, rawWord, "Загрузка...");
-
-        // --- 1. СТРОГИЙ ОФЛАЙН РЕЖИМ (JSON) ---
-        if (isOfflineMode) {
-            // Ищем слово в локальном словаре
-            if (offlineDictionary[cleanWord]) {
-                const translation = offlineDictionary[cleanWord];
-                // Если перевод является объектом, извлекаем значение
-                const resultText = typeof translation === 'object' 
-                    ? (translation.ru || translation.translation || JSON.stringify(translation))
-                    : translation;
-                
-                showTooltip(event.clientX, event.clientY, rawWord, resultText);
-            } else {
-                // Если слова нет в файле — сразу выводим ответ БЕЗ обращения к сетевому API
-                showTooltip(event.clientX, event.clientY, rawWord, "Перевод не найден в офлайн-словаре");
-            }
-            return; // Завершаем выполнение функции!
-        }
-
-        // --- 2. ОНЛАЙН РЕЖИМ (TXT) ---
+      }
+    } else {
+      const savedBook = localStorage.getItem('smartbook_book');
+      if (savedBook) {
         try {
-            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
-            if (!response.ok) throw new Error("Не найдено");
-            
-            const data = await response.json();
-            const definition = data[0]?.meanings[0]?.definitions[0]?.definition || "Перевод не найден";
-            showTooltip(event.clientX, event.clientY, rawWord, definition);
-        } catch (err) {
-            showTooltip(event.clientX, event.clientY, rawWord, "Ошибка онлайн-перевода");
+          sentences = JSON.parse(savedBook);
+        } catch(e) {
+          sentences = defaultSentences;
         }
+      }
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ UI ---
+    const savedIndex = localStorage.getItem('smartbook_index');
+    if (savedIndex !== null) currentIndex = parseInt(savedIndex);
 
-    function showTooltip(x, y, word, text) {
-        tooltipWordEl.textContent = word;
-        tooltipTextEl.textContent = text;
-        tooltipEl.style.display = 'block';
-        
-        // Корректировка позиции всплывающего окна
-        const posX = Math.min(x + 10, window.innerWidth - 320);
-        const posY = y + 15;
-        
-        tooltipEl.style.left = `${posX}px`;
-        tooltipEl.style.top = `${posY}px`;
+    const savedRate = localStorage.getItem('smartbook_rate');
+    if (savedRate !== null) {
+      speechRate = parseFloat(savedRate);
+      rateInput.value = speechRate;
+      document.getElementById('rateVal').textContent = `${speechRate}x`;
     }
 
-    function updateModeUI(text, className) {
-        modeStatusEl.textContent = `Режим: ${text}`;
-        modeStatusEl.className = `mode-badge ${className}`;
+    updateModeTag();
+  }
+
+  function updateModeTag() {
+    if (isOfflineMode) {
+      modeTag.textContent = "Офлайн (.json)";
+      modeTag.style.background = "rgba(16, 185, 129, 0.2)";
+      modeTag.style.color = "var(--typed-color)";
+    } else {
+      modeTag.textContent = "Онлайн (.txt)";
+      modeTag.style.background = "rgba(0, 240, 255, 0.2)";
+      modeTag.style.color = "var(--accent-color)";
+    }
+  }
+
+  function speak(text) {
+    if (!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = speechRate;
+    if (selectedVoice) u.voice = selectedVoice;
+    synth.speak(u);
+  }
+
+  function speakSentence(e) {
+    if (e) e.stopPropagation();
+    speak(sentences[currentIndex]);
+  }
+
+  async function fetchContextTranslation(index) {
+    // В ОФЛАЙН РЕЖИМЕ — ТОЛЬКО ЛОКАЛЬНЫЕ ДАННЫЕ
+    if (isOfflineMode) {
+      if (offlineSentencesData[index] && offlineSentencesData[index].ru) {
+        ruDisplay.textContent = offlineSentencesData[index].ru;
+      } else {
+        ruDisplay.textContent = "Перевод предложения отсутствует в JSON";
+      }
+      return;
     }
 
-    // Скрытие всплывающего окна при клике в любое другое место
-    document.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('word')) {
-            tooltipEl.style.display = 'none';
+    ruDisplay.textContent = "Переводим...";
+    const curr = sentences[index];
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(curr)}`);
+      const data = await res.json();
+      let fullTrans = "";
+      if (data && data[0]) {
+        data[0].forEach(item => { if (item[0]) fullTrans += item[0]; });
+      }
+      ruDisplay.textContent = fullTrans || "Не удалось получить перевод";
+    } catch(e) {
+      ruDisplay.textContent = "Ошибка подключения к сервису перевода";
+    }
+  }
+
+  async function inspectWord(wordStr, event) {
+    if (event) event.stopPropagation();
+    
+    const cleanWord = wordStr.replace(/[^a-zA-Z]/g, "").toLowerCase().trim();
+    if (!cleanWord) return;
+
+    document.getElementById('modalWord').textContent = cleanWord;
+    document.getElementById('modalDetails').textContent = "";
+    document.getElementById('wordModal').style.display = 'flex';
+
+    let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
+    speak(wordToSpeak);
+
+    // --- СТРОГИЙ ОФЛАЙН РЕЖИМ С ПЕРЕВОДОМ ИЗ ФАЙЛА ---
+    if (isOfflineMode) {
+      const wordInfo = offlineDictionaryData[cleanWord];
+      if (wordInfo) {
+        const ruText = typeof wordInfo === 'string' ? wordInfo : (wordInfo.ru || wordInfo.translation);
+        const detailsText = typeof wordInfo === 'object' ? (wordInfo.details || wordInfo.definition || "") : "";
+
+        document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
+        document.getElementById('modalDetails').innerHTML = detailsText;
+      } else {
+        document.getElementById('modalTrans').textContent = "Перевод не найден в офлайн-словаре";
+      }
+      return; // Завершаем функцию без обращения к сети
+    }
+
+    // --- ОНЛАЙН РЕЖИМ ---
+    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
+      const data = await res.json();
+      let wordTranslation = "";
+      if (data && data[0] && data[0][0] && data[0][0][0]) {
+        wordTranslation = data[0][0][0];
+      }
+      document.getElementById('modalTrans').textContent = wordTranslation || "Перевод не найден";
+    } catch(e) {
+      document.getElementById('modalTrans').textContent = "Ошибка загрузки перевода";
+    }
+
+    try {
+      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
+      if (dictRes.ok) {
+        const dictData = await dictRes.json();
+        const entry = dictData[0];
+        let detailsHtml = "";
+        if (entry.meanings) {
+          entry.meanings.slice(0, 2).forEach(m => {
+            if (m.definitions && m.definitions[0]) {
+              detailsHtml += `<div style="margin-top:4px;"><b>[${m.partOfSpeech}]</b>${m.definitions[0].definition}</div>`;
+            }
+          });
         }
+        document.getElementById('modalDetails').innerHTML = detailsHtml;
+      }
+    } catch(e) {}
+  }
+
+  async function callAITutor(e) {
+    if (e) e.stopPropagation();
+    
+    const aiModal = document.getElementById('aiModal');
+    const aiContent = document.getElementById('aiResponseContent');
+    aiModal.style.display = 'flex';
+
+    if (isOfflineMode && offlineSentencesData[currentIndex] && offlineSentencesData[currentIndex].ai_tutor) {
+      aiContent.innerHTML = offlineSentencesData[currentIndex].ai_tutor;
+      return;
+    }
+
+    aiContent.innerHTML = '<div class="ai-loading">Репетитор печатает ответ... ⏳</div>';
+
+    const currentEn = sentences[currentIndex];
+    const currentRu = ruDisplay.textContent;
+    const promptText = `Разбери грамматику и построение этого английского предложения: "${currentEn}" (Перевод: ${currentRu}). Напиши кратко, структурно (используй списки и выделение жирным), объясняй на русском языке. Укажи время глаголов и интересные речевые обороты, если они есть.`;
+
+    try {
+      const response = await fetch("https://text.pollinations.ai/", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'Ты - профессиональный и лаконичный репетитор английского языка. Отвечай дружелюбно.' },
+            { role: 'user', content: promptText }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error("Network error");
+      let text = await response.text();
+      
+      const htmlText = text
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+
+      aiContent.innerHTML = htmlText;
+    } catch (err) {
+      aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен.</span>';
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.code === 'Space') {
+      e.preventDefault();
+      callAITutor();
+    }
+  });
+
+  hiddenInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      nextSentence(null);
+    }
+  });
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    focusInput();
+  }
+
+  function openSettings(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('settingsModal').style.display = 'flex';
+  }
+
+  function render() {
+    const text = sentences[currentIndex] || "";
+    const typed = hiddenInput.value;
+    enDisplay.innerHTML = '';
+    
+    let globalCharIndex = 0;
+    const words = text.split(' ');
+
+    words.forEach((word, wIdx) => {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word-span';
+      wordSpan.addEventListener('click', (e) => inspectWord(word, e));
+
+      word.split('').forEach((char) => {
+        const charIdx = globalCharIndex;
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = char;
+
+        if (charIdx < typed.length) {
+          if (typed[charIdx] === text[charIdx]) {
+            span.classList.add('typed');
+          } else {
+            span.classList.add('error');
+          }
+        }
+        if (charIdx === typed.length && !isTransitioning) {
+          span.classList.add('cursor');
+        }
+
+        wordSpan.appendChild(span);
+        globalCharIndex++;
+      });
+      enDisplay.appendChild(wordSpan);
+
+      if (wIdx < words.length - 1) {
+        const spaceCharIdx = globalCharIndex;
+        const spaceSpan = document.createElement('span');
+        spaceSpan.className = 'char';
+        spaceSpan.textContent = ' ';
+
+        if (spaceCharIdx < typed.length) {
+          if (typed[spaceCharIdx] === text[spaceCharIdx]) {
+            spaceSpan.classList.add('typed');
+          } else {
+            spaceSpan.classList.add('error');
+          }
+        }
+        if (spaceCharIdx === typed.length && !isTransitioning) {
+          spaceSpan.classList.add('cursor');
+        }
+
+        enDisplay.appendChild(spaceSpan);
+        globalCharIndex++;
+      }
     });
+
+    if (typed.length >= text.length && !isTransitioning) {
+      isTransitioning = true;
+      setTimeout(() => { nextSentence(null); }, 300);
+    }
+
+    slider.max = Math.max(0, sentences.length - 1);
+    slider.value = currentIndex;
+    navInfo.textContent = `Предложение ${currentIndex + 1}/${sentences.length}`;
+  }
+
+  function checkWordPronunciation() {
+    const text = sentences[currentIndex] || "";
+    const typed = hiddenInput.value;
+    const words = text.split(' ');
+    
+    let charCount = 0;
+    for (let i = 0; i < words.length; i++) {
+      const wordStart = charCount;
+      const wordEnd = charCount + words[i].length;
+      
+      if (typed.length >= wordStart && typed.length < wordEnd) {
+        if (currentWordIndex !== i) {
+          currentWordIndex = i;
+          let cleanWord = words[i].replace(/[^a-zA-Z]/g, "");
+          let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
+          speak(wordToSpeak);
+        }
+        break;
+      }
+      charCount = wordEnd + 1;
+    }
+  }
+
+  function loadSentence(index, excessChars = "") {
+    isTransitioning = false;
+    currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
+    currentWordIndex = -1;
+    hiddenInput.value = excessChars;
+    localStorage.setItem('smartbook_index', currentIndex);
+    fetchContextTranslation(currentIndex);
+    render();
+    speakSentence();
+  }
+
+  function nextSentence(e, excessChars = "") {
+    if (e) e.stopPropagation();
+    if (currentIndex < sentences.length - 1) {
+      loadSentence(currentIndex + 1, excessChars);
+    } else {
+      isTransitioning = false;
+    }
+  }
+
+  function prevSentence(e) {
+    if (e) e.stopPropagation();
+    if (currentIndex > 0) loadSentence(currentIndex - 1);
+  }
+
+  function clearBookData() {
+    if (confirm("Вы уверены, что хотите сбросить сохраненные данные книги?")) {
+      localStorage.removeItem('smartbook_book');
+      localStorage.removeItem('smartbook_offline_sentences');
+      localStorage.removeItem('smartbook_offline_dict');
+      localStorage.removeItem('smartbook_index');
+      isOfflineMode = false;
+      sentences = defaultSentences;
+      updateModeTag();
+      loadSentence(0);
+      closeModal('settingsModal');
+    }
+  }
+
+  hiddenInput.addEventListener('input', () => {
+    if (isTransitioning) return;
+    hiddenInput.value = cleanUserInput(hiddenInput.value);
+    checkWordPronunciation();
+    render();
+  });
+
+  // Загрузка файлов (.txt или двойная подгрузка .json)
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    let hasJson = files.some(f => f.name.endsWith('.json'));
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const content = evt.target.result;
+
+        if (file.name.endsWith('.json')) {
+          isOfflineMode = true;
+          try {
+            const parsed = JSON.parse(content);
+            
+            // Если это книга (массив объектов с ключами en/ru или с массивом sentences)
+            if ((Array.isArray(parsed) && parsed.length > 0 && ('en' in parsed[0] || 'text' in parsed[0])) || parsed.sentences) {
+              offlineSentencesData = parsed.sentences || parsed;
+              sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
+              localStorage.setItem('smartbook_offline_sentences', JSON.stringify(offlineSentencesData));
+            } 
+            // Если это словарь
+            else {
+              let rawDict = parsed.dictionary || parsed;
+              offlineDictionaryData = {};
+              
+              if (Array.isArray(rawDict)) {
+                // Если словарь представлен массивом [{word: "...", ru: "..."}]
+                rawDict.forEach(item => {
+                  const key = (item.word || item.key || item.en || '').toLowerCase().trim();
+                  if (key) offlineDictionaryData[key] = item.ru || item.translation || item.value || item;
+                });
+              } else if (typeof rawDict === 'object') {
+                // Если словарь представлен объектом {"word": "translation"}
+                for (let k in rawDict) {
+                  offlineDictionaryData[k.toLowerCase().trim()] = rawDict[k];
+                }
+              }
+              localStorage.setItem('smartbook_offline_dict', JSON.stringify(offlineDictionaryData));
+            }
+          } catch(err) {
+            alert("Ошибка чтения JSON: " + err.message);
+          }
+        } else if (file.name.endsWith('.txt') && !hasJson) {
+          isOfflineMode = false;
+          const parsedSentences = normalizeText(content)
+            .replace(/\r?\n|\r/g, " ")
+            .split(/(?<=[.!?])\s+/)
+            .map(s => s.trim())
+            .filter(s => s.length > 5);
+
+          if (parsedSentences.length > 0) {
+            sentences = parsedSentences;
+            localStorage.setItem('smartbook_book', JSON.stringify(sentences));
+            localStorage.removeItem('smartbook_offline_sentences');
+            localStorage.removeItem('smartbook_offline_dict');
+          }
+        }
+
+        updateModeTag();
+        loadSentence(0);
+      };
+      reader.readAsText(file);
+    });
+  });
+
+  slider.addEventListener('input', (e) => {
+    loadSentence(parseInt(e.target.value));
+  });
+
+  voiceSelect.addEventListener('change', (e) => {
+    const idx = parseInt(e.target.value);
+    selectedVoice = availableVoices[idx];
+    localStorage.setItem('smartbook_voice', idx);
+  });
+
+  rateInput.addEventListener('input', (e) => {
+    speechRate = parseFloat(e.target.value);
+    document.getElementById('rateVal').textContent = `${speechRate}x`;
+    localStorage.setItem('smartbook_rate', speechRate);
+  });
+
+  function focusInput() { hiddenInput.focus(); }
+
+  initData();
+  loadSentence(currentIndex);
 </script>
 </body>
 </html>
