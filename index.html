@@ -2,1065 +2,1055 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v3.0 (Strict Offline & Fast Online)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBook Reader</title>
   <style>
     :root {
-      --bg-color: #0d0f17;
-      --card-bg: #161925;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --text-muted: #94a3b8;
       --accent-color: #00f0ff;
-      --text-main: #e2e8f0;
-      --text-dim: #475569;
-      --typed-color: #10b981;
-      --error-bg: rgba(239, 68, 68, 0.35);
-      --error-color: #f87171;
-      --ru-color: #94a3b8;
-      --ai-color: #b026ff;
       --yandex-color: #ffcc00;
+      --typed-color: #22c55e;
+      --error-color: #ef4444;
+      --cursor-color: #38bdf8;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', system-ui, monospace;
     }
 
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
-      color: var(--text-main);
+      color: var(--text-color);
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       min-height: 100vh;
-      padding: 15px 10px;
+      padding: 20px;
+      overflow-x: hidden;
     }
 
-    .container {
-      background-color: var(--card-bg);
-      border: 1px solid rgba(0, 240, 255, 0.2);
-      border-radius: 14px;
-      padding: 16px;
-      max-width: 800px;
+    .app-container {
       width: 100%;
+      max-width: 800px;
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      margin-top: 10px;
-    }
-
-    .top-bar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .file-btn, .icon-btn {
-      background: rgba(0, 240, 255, 0.1);
-      border: 1px solid var(--accent-color);
-      color: var(--accent-color);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.2s;
-    }
-
-    .ai-top-btn {
-      background: rgba(176, 38, 255, 0.1);
-      border-color: var(--ai-color);
-      color: var(--ai-color);
-      font-size: 1.1rem;
-      padding: 4px 10px;
-    }
-    .ai-top-btn:hover { background: rgba(176, 38, 255, 0.25); }
-
-    .version-tag {
-      background: rgba(0, 240, 255, 0.2);
-      color: var(--accent-color);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-
-    .mode-tag {
-      background: rgba(255, 204, 0, 0.2);
-      color: var(--yandex-color);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-
-    .nav-info {
-      font-size: 0.8rem;
-      color: var(--ru-color);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .reader-card {
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 10px;
-      padding: 18px;
-      margin-bottom: 15px;
+      flex-direction: column;
+      gap: 20px;
       position: relative;
     }
 
-    .speak-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: transparent;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+    }
+
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .controls-top {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background-color: #334155;
+      color: var(--text-color);
       border: none;
-      font-size: 1.2rem;
+      padding: 8px 14px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background-color: #475569;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-accent {
+      background-color: #2563eb;
+    }
+    .btn-accent:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      color: white;
+      font-weight: 600;
+    }
+    .btn-ai:hover {
+      opacity: 0.9;
+    }
+
+    /* Дисплей текста */
+    .sentence-card {
+      background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+      cursor: text;
     }
 
     .en-display {
-      font-size: 1.35rem;
-      line-height: 1.7;
-      margin-bottom: 15px;
+      font-size: 1.4rem;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
       word-wrap: break-word;
       user-select: none;
-      min-height: 60px;
-      padding-right: 30px;
     }
 
     .word-span {
       display: inline-block;
+      margin-right: 8px;
       cursor: pointer;
+      padding: 2px 4px;
       border-radius: 4px;
-      padding: 0 2px;
-      transition: background 0.15s;
+      transition: background-color 0.2s;
     }
 
     .word-span:hover {
-      background: rgba(0, 240, 255, 0.15);
+      background-color: rgba(56, 189, 248, 0.2);
     }
 
     .char {
-      color: var(--text-main);
-      border-bottom: 2px solid transparent;
+      position: relative;
+      color: var(--text-muted);
     }
 
-    .char.typed { color: var(--typed-color); }
+    .char.typed {
+      color: var(--typed-color);
+    }
+
     .char.error {
-      background-color: var(--error-bg);
       color: var(--error-color);
+      background-color: rgba(239, 68, 68, 0.2);
+      border-radius: 2px;
     }
 
-    .char.cursor {
-      border-bottom-color: var(--accent-color);
+    .char.cursor::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 3px;
+      background-color: var(--cursor-color);
       animation: blink 1s infinite;
     }
 
-    @keyframes blink { 50% { border-bottom-color: transparent; } }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
 
     .ru-display {
       font-size: 1.05rem;
-      color: var(--ru-color);
+      color: #cbd5e1;
+      border-top: 1px dashed #334155;
+      padding-top: 12px;
       font-style: italic;
-      border-top: 1px dashed rgba(255, 255, 255, 0.1);
-      padding-top: 10px;
     }
 
-    .controls { display: flex; flex-direction: column; gap: 10px; }
-    .slider-wrapper { display: flex; align-items: center; gap: 10px; }
-    .slider { flex-grow: 1; accent-color: var(--accent-color); }
-    
+    /* Навигация */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .slider-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--cursor-color);
+    }
+
+    .nav-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Скрытый input для клавиатуры */
     #hiddenInput {
       position: absolute;
       opacity: 0;
-      top: -1000px;
-      left: -1000px;
+      top: -9999px;
+      left: -9999px;
     }
 
-    .modal {
+    /* Модальные окна */
+    .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 2000;
-      padding: 20px;
+      z-index: 1000;
     }
 
-    .modal-content {
-      background: #1e293b;
-      border: 1px solid var(--accent-color);
-      border-radius: 12px;
-      padding: 20px;
+    .modal {
+      background: var(--card-bg);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
       max-width: 500px;
-      width: 100%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      position: relative;
-      max-height: 85vh;
+      max-height: 80vh;
       overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .ai-modal-content { border-color: var(--ai-color); }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
 
-    .modal-close {
-      position: absolute;
-      top: 10px; right: 12px;
-      background: transparent;
-      border: none;
-      color: var(--ru-color);
+    .modal-title {
       font-size: 1.2rem;
-      cursor: pointer;
+      font-weight: bold;
+      color: var(--accent-color);
     }
 
-    .setting-row { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-    .setting-row label { font-size: 0.85rem; color: var(--ru-color); }
-    .setting-row select, .setting-row input[type="range"] {
-      background: #0d0f17;
-      color: var(--text-main);
-      border: 1px solid rgba(255,255,255,0.2);
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .ai-content {
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .ai-loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    select, input[type="file"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: var(--text-color);
       padding: 8px;
       border-radius: 6px;
       outline: none;
     }
-
-    .danger-btn {
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
-    }
-
-    .modal-word { font-size: 1.5rem; color: var(--accent-color); font-weight: bold; margin-bottom: 6px; }
-    
-    .context-box {
-      background: rgba(255, 204, 0, 0.08);
-      border-left: 3px solid var(--yandex-color);
-      padding: 8px 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      color: #f1f5f9;
-      line-height: 1.4;
-    }
-
-    .modal-trans-list {
-      font-size: 1.05rem;
-      color: #10b981;
-      margin: 10px 0;
-      line-height: 1.6;
-    }
-
-    .modal-details {
-      font-size: 0.85rem; color: var(--text-main);
-      line-height: 1.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;
-    }
-
-    .ai-chat-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(176, 38, 255, 0.2);
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 12px;
-      max-height: 380px;
-      overflow-y: auto;
-      color: var(--text-main);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    
-    .ai-chat-box b { color: var(--accent-color); }
-    .ai-chat-box i { color: #a5b4fc; }
-    .ai-chat-box code { background: #000; padding: 2px 5px; border-radius: 4px; color: #10b981; }
-    
-    .ai-loading {
-      color: var(--ai-color);
-      font-style: italic;
-      text-align: center;
-      padding: 20px 0;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
   </style>
 </head>
 <body>
 
-<div class="container" onclick="focusInput()">
-  <div class="top-bar">
-    <div class="btn-group">
-      <label class="file-btn">
-        📁 Книга (.txt / .json)
-        <input type="file" id="fileInput" accept=".txt,.json" multiple style="display:none;">
-      </label>
-      <button class="icon-btn" onclick="openSettings(event)">⚙️ Настройки</button>
-      <button class="icon-btn ai-top-btn" onclick="callAITutor(event)" title="ИИ-Репетитор (Ctrl + Space)">🤖</button>
+  <div class="app-container">
+    <header>
+      <div class="title-area">
+        <h1>SmartBook</h1>
+        <span id="modeTag" class="badge">Онлайн</span>
+      </div>
+      <div class="controls-top">
+        <button class="btn-ai" onclick="callAITutor(event)">✨ ИИ Разбор (Ctrl+Space)</button>
+        <button onclick="speakSentence(event)">🔊 Озвучить</button>
+        <button onclick="openSettings(event)">⚙️ Настройки</button>
+      </div>
+    </header>
+
+    <div class="sentence-card" onclick="focusInput()">
+      <div id="enDisplay" class="en-display"></div>
+      <div id="ruDisplay" class="ru-display">Загрузка перевода...</div>
     </div>
-    <div class="nav-info">
-      <span id="modeTag" class="mode-tag">Онлайн</span>
-      <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v3.0</span>
+
+    <div class="nav-bar">
+      <button onclick="prevSentence(event)">◀ Назад</button>
+      <div class="slider-container">
+        <input type="range" id="sentenceSlider" min="0" value="0" oninput="loadSentence(parseInt(this.value))">
+        <span id="navInfo" class="nav-info">0/0</span>
+      </div>
+      <button onclick="nextSentence(event)">Вперед ▶</button>
+    </div>
+
+    <!-- Скрытый поле ввода для работы клавиатуры -->
+    <input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
+  </div>
+
+  <!-- Модальное окно словаря -->
+  <div id="wordModal" class="modal-overlay" onclick="closeModal('wordModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div id="modalWord" class="modal-title">Word</div>
+        <button class="close-btn" onclick="closeModal('wordModal')">&times;</button>
+      </div>
+      <div id="modalTrans" style="font-size: 1.1rem; color: #e2e8f0;"></div>
+      <div id="modalDetails" style="font-size: 0.9rem; color: var(--text-muted);"></div>
+      <div style="border-top: 1px solid #334155; padding-top: 8px; font-size: 0.85rem; color: var(--text-muted);">
+        <strong>Контекст:</strong> <span id="contextText"></span>
+      </div>
     </div>
   </div>
 
-  <div class="reader-card">
-    <button class="speak-btn" onclick="speakSentence(event)">🔊</button>
-    <div class="en-display" id="enDisplay"></div>
-    <div class="ru-display" id="ruDisplay">Загрузка перевода...</div>
-  </div>
-
-  <div class="controls">
-    <div class="slider-wrapper">
-      <button class="file-btn" onclick="prevSentence(event)">◄</button>
-      <input type="range" id="sentenceSlider" class="slider" min="0" value="0">
-      <button class="file-btn" onclick="nextSentence(event)">►</button>
+  <!-- Модальное окно ИИ Репетитора -->
+  <div id="aiModal" class="modal-overlay" onclick="closeModal('aiModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">🤖 ИИ Репетитор</div>
+        <button class="close-btn" onclick="closeModal('aiModal')">&times;</button>
+      </div>
+      <div id="aiResponseContent" class="ai-content">
+        <div class="ai-loading">Репетитор печатает ответ... ⏳</div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="modal" id="settingsModal" onclick="closeModal('settingsModal')">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
-    <h3 style="color: var(--accent-color); margin-bottom: 10px;">Настройки</h3>
-    
-    <div class="setting-row">
-      <label for="voiceSelect">Голос озвучки:</label>
-      <select id="voiceSelect"></select>
+  <!-- Модальное окно настроек -->
+  <div id="settingsModal" class="modal-overlay" onclick="closeModal('settingsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Настройки</div>
+        <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+      </div>
+      
+      <div class="setting-group">
+        <label>Загрузить книгу (.txt или .json):</label>
+        <input type="file" id="fileInput" accept=".txt,.json" multiple>
+      </div>
+
+      <div class="setting-group">
+        <label>Голос озвучки (English):</label>
+        <select id="voiceSelect" onchange="selectedVoice = availableVoices[this.value]; safeSetLocalStorage('smartbook_voice', this.value);"></select>
+      </div>
+
+      <div class="setting-group">
+        <label>Скорость речи: <span id="rateVal">0.9x</span></label>
+        <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9" oninput="speechRate = parseFloat(this.value); document.getElementById('rateVal').textContent = this.value + 'x'; safeSetLocalStorage('smartbook_rate', this.value);">
+      </div>
+
+      <div style="margin-top: 10px;">
+        <button style="background: var(--error-color); width: 100%; justify-content: center;" onclick="clearBookData()">Сбросить сохранённые данные</button>
+      </div>
     </div>
-
-    <div class="setting-row">
-      <label for="rateInput">Скорость речи: <span id="rateVal">0.9x</span></label>
-      <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9">
-    </div>
-
-    <button class="danger-btn" onclick="clearBookData()">🗑 Сбросить сохраненные данные</button>
   </div>
-</div>
 
-<div class="modal" id="wordModal" onclick="closeModal('wordModal')">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeModal('wordModal')">✕</button>
-    <div class="modal-word" id="modalWord">Word</div>
-    
-    <div class="context-box" id="modalContext">
-      <b>Контекст предложения:</b><br>
-      <span id="contextText">...</span>
-    </div>
+  <script>
+    let defaultSentences = [
+      "If I survive this, I will need a very strong drink.",
+      "The ship computer handles orbital navigation automatically.",
+      "System diagnostics revealed a critical error in the main reactor."
+    ];
 
-    <div style="font-size: 0.85rem; color: var(--ru-color); margin-top: 10px;">Значение слова:</div>
-    <div class="modal-trans-list" id="modalTrans">Загрузка...</div>
-    <div class="modal-details" id="modalDetails"></div>
-  </div>
-</div>
+    let sentences = defaultSentences;
+    let offlineSentencesData = [];
+    let offlineDictionaryData = {};
+    let isOfflineMode = false;
 
-<div class="modal" id="aiModal" onclick="closeModal('aiModal')">
-  <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
-    <h3 style="color: var(--ai-color); margin-bottom: 5px;">🤖 ИИ-Репетитор</h3>
-    <p style="font-size: 0.8rem; color: var(--ru-color);">
-      Грамматический анализ и разбор предложения
-    </p>
-    
-    <div class="ai-chat-box" id="aiResponseContent"></div>
-  </div>
-</div>
+    let currentIndex = 0;
+    let currentWordIndex = -1;
+    let availableVoices = [];
+    let selectedVoice = null;
+    let speechRate = 0.9;
+    let isTransitioning = false;
 
-<input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
+    const synth = window.speechSynthesis;
+    const enDisplay = document.getElementById('enDisplay');
+    const ruDisplay = document.getElementById('ruDisplay');
+    const hiddenInput = document.getElementById('hiddenInput');
+    const slider = document.getElementById('sentenceSlider');
+    const navInfo = document.getElementById('navInfo');
+    const modeTag = document.getElementById('modeTag');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const rateInput = document.getElementById('rateInput');
 
-<script>
-  let defaultSentences = [
-    "If I survive this, I will need a very strong drink.",
-    "The ship computer handles orbital navigation automatically.",
-    "System diagnostics revealed a critical error in the main reactor."
-  ];
+    const pronunciationMap = { 'a': 'uh', 'i': 'eye' };
 
-  let sentences = defaultSentences;
-  let offlineSentencesData = [];
-  let offlineDictionaryData = {};
-  let isOfflineMode = false;
+    // --- Хранилище IndexedDB ---
+    const dbName = "SmartBookDB";
+    let db = null;
 
-  let currentIndex = 0;
-  let currentWordIndex = -1;
-  let availableVoices = [];
-  let selectedVoice = null;
-  let speechRate = 0.9;
-  let isTransitioning = false;
-
-  const synth = window.speechSynthesis;
-  const enDisplay = document.getElementById('enDisplay');
-  const ruDisplay = document.getElementById('ruDisplay');
-  const hiddenInput = document.getElementById('hiddenInput');
-  const slider = document.getElementById('sentenceSlider');
-  const navInfo = document.getElementById('navInfo');
-  const modeTag = document.getElementById('modeTag');
-  const voiceSelect = document.getElementById('voiceSelect');
-  const rateInput = document.getElementById('rateInput');
-
-  const pronunciationMap = { 'a': 'uh', 'i': 'eye' };
-
-  // --- Хранилище IndexedDB ---
-  const dbName = "SmartBookDB";
-  let db = null;
-
-  function initDB() {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(dbName, 1);
-      request.onupgradeneeded = (e) => {
-        const d = e.target.result;
-        if (!d.objectStoreNames.contains('store')) {
-          d.createObjectStore('store');
-        }
-      };
-      request.onsuccess = (e) => {
-        db = e.target.result;
-        resolve(db);
-      };
-      request.onerror = () => resolve(null);
-    });
-  }
-
-  function saveToDB(key, val) {
-    return new Promise((resolve) => {
-      if (!db) return resolve();
-      try {
-        const tx = db.transaction('store', 'readwrite');
-        const store = tx.objectStore('store');
-        store.put(val, key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-      } catch(e) { resolve(); }
-    });
-  }
-
-  function getFromDB(key) {
-    return new Promise((resolve) => {
-      if (!db) return resolve(null);
-      try {
-        const tx = db.transaction('store', 'readonly');
-        const store = tx.objectStore('store');
-        const req = store.get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(null);
-      } catch(e) { resolve(null); }
-    });
-  }
-
-  function removeFromDB(key) {
-    return new Promise((resolve) => {
-      if (!db) return resolve();
-      try {
-        const tx = db.transaction('store', 'readwrite');
-        const store = tx.objectStore('store');
-        store.delete(key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-      } catch(e) { resolve(); }
-    });
-  }
-
-  function safeSetLocalStorage(key, val) {
-    try {
-      localStorage.setItem(key, val);
-    } catch(e) {
-      console.warn(`Превышен лимит LocalStorage для ${key}`);
+    function initDB() {
+      return new Promise((resolve) => {
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = (e) => {
+          const d = e.target.result;
+          if (!d.objectStoreNames.contains('store')) {
+            d.createObjectStore('store');
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(db);
+        };
+        request.onerror = () => resolve(null);
+      });
     }
-  }
 
-  function normalizeText(text) {
-    return text
-      .replace(/[’`′‘]/g, "'")
-      .replace(/[“”«»]/g, '"')
-      .replace(/[—–]/g, "-")
-      .replace(/[*_~^]/g, "")
-      .replace(/--+/g, "-")
-      .replace(/\s+/g, " ");
-  }
-
-  function cleanUserInput(input) {
-    return input
-      .replace(/[’`′‘]/g, "'")
-      .replace(/[“”«»]/g, '"')
-      .replace(/[—–]/g, "-");
-  }
-
-  function normalizeDictKey(str) {
-    if (!str || typeof str !== 'string') return '';
-    return str.toLowerCase().trim().replace(/['’`′‘]/g, "'").replace(/[^a-z0-9']/g, "");
-  }
-
-  function loadVoices() {
-    if (!synth) return;
-    const voices = synth.getVoices();
-    availableVoices = voices.filter(v => v.lang.startsWith('en'));
-    voiceSelect.innerHTML = '';
-    
-    availableVoices.forEach((v, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = `${v.name} (${v.lang})`;
-      voiceSelect.appendChild(opt);
-    });
-
-    const savedVoiceIndex = localStorage.getItem('smartbook_voice');
-    if (savedVoiceIndex !== null && availableVoices[savedVoiceIndex]) {
-      voiceSelect.value = savedVoiceIndex;
-      selectedVoice = availableVoices[savedVoiceIndex];
-    } else if (availableVoices.length > 0) {
-      selectedVoice = availableVoices[0];
-    }
-  }
-
-  if (synth) {
-    synth.onvoiceschanged = loadVoices;
-    loadVoices();
-  }
-
-  async function initData() {
-    await initDB();
-
-    const savedOfflineSentences = (await getFromDB('smartbook_offline_sentences')) || localStorage.getItem('smartbook_offline_sentences');
-    const savedOfflineDict = (await getFromDB('smartbook_offline_dict')) || localStorage.getItem('smartbook_offline_dict');
-
-    if (savedOfflineSentences) {
-      try {
-        offlineSentencesData = typeof savedOfflineSentences === 'string' ? JSON.parse(savedOfflineSentences) : savedOfflineSentences;
-        if (savedOfflineDict) {
-          offlineDictionaryData = typeof savedOfflineDict === 'string' ? JSON.parse(savedOfflineDict) : savedOfflineDict;
-        }
-        isOfflineMode = true;
-        sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : (s.en || s.text || ""));
-      } catch(e) {
-        isOfflineMode = false;
-      }
-    } else {
-      const savedBook = localStorage.getItem('smartbook_book');
-      if (savedBook) {
+    function saveToDB(key, val) {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
         try {
-          sentences = JSON.parse(savedBook);
+          const tx = db.transaction('store', 'readwrite');
+          const store = tx.objectStore('store');
+          store.put(val, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch(e) { resolve(); }
+      });
+    }
+
+    function getFromDB(key) {
+      return new Promise((resolve) => {
+        if (!db) return resolve(null);
+        try {
+          const tx = db.transaction('store', 'readonly');
+          const store = tx.objectStore('store');
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        } catch(e) { resolve(null); }
+      });
+    }
+
+    function removeFromDB(key) {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
+        try {
+          const tx = db.transaction('store', 'readwrite');
+          const store = tx.objectStore('store');
+          store.delete(key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch(e) { resolve(); }
+      });
+    }
+
+    function safeSetLocalStorage(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch(e) {
+        console.warn(`Превышен лимит LocalStorage для ${key}`);
+      }
+    }
+
+    function cleanUserInput(input) {
+      return input
+        .replace(/[’`′‘]/g, "'")
+        .replace(/[“”«»]/g, '"')
+        .replace(/[—–]/g, "-");
+    }
+
+    function normalizeDictKey(str) {
+      if (!str || typeof str !== 'string') return '';
+      return str.toLowerCase().trim().replace(/[\ufeff\r\n\t]/g, '').replace(/[’`′‘]/g, "'");
+    }
+
+    function loadVoices() {
+      if (!synth) return;
+      const voices = synth.getVoices();
+      availableVoices = voices.filter(v => v.lang.startsWith('en'));
+      voiceSelect.innerHTML = '';
+      
+      availableVoices.forEach((v, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${v.name} (${v.lang})`;
+        voiceSelect.appendChild(opt);
+      });
+
+      const savedVoiceIndex = localStorage.getItem('smartbook_voice');
+      if (savedVoiceIndex !== null && availableVoices[savedVoiceIndex]) {
+        voiceSelect.value = savedVoiceIndex;
+        selectedVoice = availableVoices[savedVoiceIndex];
+      } else if (availableVoices.length > 0) {
+        selectedVoice = availableVoices[0];
+      }
+    }
+
+    if (synth) {
+      synth.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
+
+    async function initData() {
+      await initDB();
+
+      const savedOfflineSentences = (await getFromDB('smartbook_offline_sentences')) || localStorage.getItem('smartbook_offline_sentences');
+      const savedOfflineDict = (await getFromDB('smartbook_offline_dict')) || localStorage.getItem('smartbook_offline_dict');
+
+      if (savedOfflineSentences) {
+        try {
+          offlineSentencesData = typeof savedOfflineSentences === 'string' ? JSON.parse(savedOfflineSentences) : savedOfflineSentences;
+          if (savedOfflineDict) {
+            offlineDictionaryData = typeof savedOfflineDict === 'string' ? JSON.parse(savedOfflineDict) : savedOfflineDict;
+          }
+          isOfflineMode = true;
+          sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : (s.en || s.text || ""));
         } catch(e) {
-          sentences = defaultSentences;
-        }
-      }
-    }
-
-    const savedIndex = localStorage.getItem('smartbook_index');
-    if (savedIndex !== null) currentIndex = parseInt(savedIndex);
-
-    const savedRate = localStorage.getItem('smartbook_rate');
-    if (savedRate !== null) {
-      speechRate = parseFloat(savedRate);
-      rateInput.value = speechRate;
-      document.getElementById('rateVal').textContent = `${speechRate}x`;
-    }
-
-    updateModeTag();
-    loadSentence(currentIndex);
-  }
-
-  function updateModeTag() {
-    if (isOfflineMode) {
-      modeTag.textContent = "Офлайн (.json)";
-      modeTag.style.background = "rgba(0, 240, 255, 0.2)";
-      modeTag.style.color = "var(--accent-color)";
-    } else {
-      modeTag.textContent = "Онлайн";
-      modeTag.style.background = "rgba(255, 204, 0, 0.2)";
-      modeTag.style.color = "var(--yandex-color)";
-    }
-  }
-
-  function speak(text) {
-    if (!synth) return;
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = speechRate;
-    if (selectedVoice) u.voice = selectedVoice;
-    synth.speak(u);
-  }
-
-  function speakSentence(e) {
-    if (e) e.stopPropagation();
-    speak(sentences[currentIndex]);
-  }
-
-  async function fetchContextTranslation(index) {
-    if (isOfflineMode && offlineSentencesData[index] && (offlineSentencesData[index].ru || offlineSentencesData[index].translation)) {
-      ruDisplay.textContent = offlineSentencesData[index].ru || offlineSentencesData[index].translation;
-      return;
-    }
-
-    ruDisplay.textContent = "Загрузка перевода...";
-    const curr = sentences[index];
-    if (!curr) return;
-
-    try {
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(curr)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data[0]) {
-          ruDisplay.textContent = data[0].map(item => item[0]).join('');
-          return;
-        }
-      }
-    } catch(e) {}
-
-    ruDisplay.textContent = "Не удалось загрузить перевод предложения";
-  }
-
-  function findInOfflineDict(wordStr) {
-    if (!offlineDictionaryData || Object.keys(offlineDictionaryData).length === 0) return null;
-
-    const rawClean = wordStr.toLowerCase().trim();
-    const k1 = normalizeDictKey(rawClean);
-
-    if (!k1) return null;
-
-    if (offlineDictionaryData[k1]) return offlineDictionaryData[k1];
-    if (offlineDictionaryData[rawClean]) return offlineDictionaryData[rawClean];
-
-    const candidates = [];
-    if (k1.endsWith("'s")) candidates.push(k1.slice(0, -2));
-    if (k1.endsWith("s")) candidates.push(k1.slice(0, -1));
-    if (k1.endsWith("es")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
-    if (k1.endsWith("ed")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
-    if (k1.endsWith("ing")) candidates.push(k1.slice(0, -3), k1.slice(0, -3) + "e");
-    if (k1.endsWith("ies")) candidates.push(k1.slice(0, -3) + "y");
-    if (k1.endsWith("ied")) candidates.push(k1.slice(0, -3) + "y");
-    if (k1.endsWith("ly")) candidates.push(k1.slice(0, -2));
-
-    for (let cand of candidates) {
-      if (cand && offlineDictionaryData[cand]) {
-        return offlineDictionaryData[cand];
-      }
-    }
-
-    return null;
-  }
-
-  async function inspectWord(wordStr, event) {
-    if (event) event.stopPropagation();
-    
-    const rawWord = wordStr.trim();
-    const cleanWord = rawWord.replace(/[^a-zA-Z']/g, "").toLowerCase().trim();
-    if (!cleanWord) return;
-
-    document.getElementById('modalWord').textContent = rawWord;
-    document.getElementById('modalDetails').textContent = "";
-    document.getElementById('contextText').textContent = ruDisplay.textContent || "Загрузка контекста...";
-    document.getElementById('wordModal').style.display = 'flex';
-
-    let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
-    speak(wordToSpeak);
-
-    // 1. ОФЛАЙН РЕЖИМ — Поиск СТРОГО в загруженном словаре
-    if (isOfflineMode) {
-      const offlineWordInfo = findInOfflineDict(rawWord) || findInOfflineDict(cleanWord);
-      if (offlineWordInfo) {
-        let ruText = "";
-        let detailsText = "";
-
-        if (typeof offlineWordInfo === 'string') {
-          ruText = offlineWordInfo;
-        } else if (typeof offlineWordInfo === 'object' && offlineWordInfo !== null) {
-          ruText = offlineWordInfo.ru || offlineWordInfo.translation || offlineWordInfo.val || offlineWordInfo.meaning || "";
-          detailsText = offlineWordInfo.details || offlineWordInfo.definition || offlineWordInfo.ex || offlineWordInfo.examples || "";
-          if (Array.isArray(ruText)) ruText = ruText.join(', ');
-        }
-
-        if (typeof ruText === 'string' && (ruText.includes(',') || ruText.includes(';'))) {
-          const meanings = ruText.split(/[,;]/).map(m => m.trim()).filter(Boolean);
-          document.getElementById('modalTrans').innerHTML = meanings.map(m => `• ${m}`).join('<br>');
-        } else {
-          document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
-        }
-
-        document.getElementById('modalDetails').innerHTML = detailsText ? `<div>${detailsText}</div>` : "";
-      } else {
-        document.getElementById('modalTrans').innerHTML = "<span style='color:var(--accent-color); font-weight:normal;'>Слово не найдено в офлайн-словаре</span>";
-        document.getElementById('modalDetails').innerHTML = "<div style='color:var(--error-color); font-size:0.8rem; margin-top:5px;'>Убедитесь, что загруженный JSON-файл содержит структуру словаря (например, { \"word\": \"перевод\" }).</div>";
-      }
-      return;
-    }
-
-    // 2. ОНЛАЙН РЕЖИМ — Быстрый одиночный перевод
-    document.getElementById('modalTrans').textContent = "Загрузка...";
-
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`;
-      const res = await fetch(url);
-
-      if (res.ok) {
-        const data = await res.json();
-        let mainTrans = (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : "";
-
-        if (mainTrans) {
-          document.getElementById('modalTrans').textContent = mainTrans;
-          document.getElementById('modalDetails').textContent = "";
-        } else {
-          document.getElementById('modalTrans').textContent = "Перевод не найден";
+          isOfflineMode = false;
         }
       } else {
-        throw new Error("HTTP Error");
-      }
-    } catch(e) {
-      document.getElementById('modalTrans').textContent = "Не удалось загрузить перевод";
-    }
-  }
-
-  async function callAITutor(e) {
-    if (e) e.stopPropagation();
-    
-    const aiModal = document.getElementById('aiModal');
-    const aiContent = document.getElementById('aiResponseContent');
-    aiModal.style.display = 'flex';
-
-    if (isOfflineMode && offlineSentencesData[currentIndex] && offlineSentencesData[currentIndex].ai_tutor) {
-      aiContent.innerHTML = offlineSentencesData[currentIndex].ai_tutor;
-      return;
-    }
-
-    aiContent.innerHTML = '<div class="ai-loading">Репетитор печатает ответ... ⏳</div>';
-
-    const currentEn = sentences[currentIndex];
-    const currentRu = ruDisplay.textContent;
-    const promptText = `Разбери грамматику и построение этого английского предложения: "${currentEn}" (Перевод: ${currentRu}). Напиши кратко, структурно (используй списки и выделение жирным), объясняй на русском языке. Укажи время глаголов и интересные речевые обороты, если они есть.`;
-
-    try {
-      const response = await fetch("https://text.pollinations.ai/", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'Ты - профессиональный и лаконичный репетитор английского языка. Отвечай дружелюбно.' },
-            { role: 'user', content: promptText }
-          ]
-        })
-      });
-
-      if (!response.ok) throw new Error("Network error");
-      let text = await response.text();
-      
-      const htmlText = text
-        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-        .replace(/\*(.*?)\*/g, '<i>$1</i>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\n/g, '<br>');
-
-      aiContent.innerHTML = htmlText;
-    } catch (err) {
-      aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен.</span>';
-    }
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.code === 'Space') {
-      e.preventDefault();
-      callAITutor();
-    }
-  });
-
-  hiddenInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      nextSentence(null);
-    }
-  });
-
-  function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
-    focusInput();
-  }
-
-  function openSettings(e) {
-    if (e) e.stopPropagation();
-    document.getElementById('settingsModal').style.display = 'flex';
-  }
-
-  function render() {
-    const text = sentences[currentIndex] || "";
-    const typed = hiddenInput.value;
-    enDisplay.innerHTML = '';
-    
-    let globalCharIndex = 0;
-    const words = text.split(' ');
-
-    words.forEach((word, wIdx) => {
-      const wordSpan = document.createElement('span');
-      wordSpan.className = 'word-span';
-      wordSpan.addEventListener('click', (e) => inspectWord(word, e));
-
-      word.split('').forEach((char) => {
-        const charIdx = globalCharIndex;
-        const span = document.createElement('span');
-        span.className = 'char';
-        span.textContent = char;
-
-        if (charIdx < typed.length) {
-          if (typed[charIdx] === text[charIdx]) {
-            span.classList.add('typed');
-          } else {
-            span.classList.add('error');
+        const savedBook = localStorage.getItem('smartbook_book');
+        if (savedBook) {
+          try {
+            sentences = JSON.parse(savedBook);
+          } catch(e) {
+            sentences = defaultSentences;
           }
         }
-        if (charIdx === typed.length && !isTransitioning) {
-          span.classList.add('cursor');
-        }
-
-        wordSpan.appendChild(span);
-        globalCharIndex++;
-      });
-      enDisplay.appendChild(wordSpan);
-
-      if (wIdx < words.length - 1) {
-        const spaceCharIdx = globalCharIndex;
-        const spaceSpan = document.createElement('span');
-        spaceSpan.className = 'char';
-        spaceSpan.textContent = ' ';
-
-        if (spaceCharIdx < typed.length) {
-          if (typed[spaceCharIdx] === text[spaceCharIdx]) {
-            spaceSpan.classList.add('typed');
-          } else {
-            spaceSpan.classList.add('error');
-          }
-        }
-        if (spaceCharIdx === typed.length && !isTransitioning) {
-          spaceSpan.classList.add('cursor');
-        }
-
-        enDisplay.appendChild(spaceSpan);
-        globalCharIndex++;
       }
-    });
 
-    if (typed.length >= text.length && !isTransitioning) {
-      isTransitioning = true;
-      setTimeout(() => { nextSentence(null); }, 300);
-    }
+      const savedIndex = localStorage.getItem('smartbook_index');
+      if (savedIndex !== null) currentIndex = parseInt(savedIndex);
 
-    slider.max = Math.max(0, sentences.length - 1);
-    slider.value = currentIndex;
-    navInfo.textContent = `Предложение ${currentIndex + 1}/${sentences.length}`;
-  }
-
-  function checkWordPronunciation() {
-    const text = sentences[currentIndex] || "";
-    const typed = hiddenInput.value;
-    const words = text.split(' ');
-    
-    let charCount = 0;
-    for (let i = 0; i < words.length; i++) {
-      const wordStart = charCount;
-      const wordEnd = charCount + words[i].length;
-      
-      if (typed.length >= wordStart && typed.length < wordEnd) {
-        if (currentWordIndex !== i) {
-          currentWordIndex = i;
-          let cleanWord = words[i].replace(/[^a-zA-Z]/g, "");
-          let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
-          speak(wordToSpeak);
-        }
-        break;
+      const savedRate = localStorage.getItem('smartbook_rate');
+      if (savedRate !== null) {
+        speechRate = parseFloat(savedRate);
+        rateInput.value = speechRate;
+        document.getElementById('rateVal').textContent = `${speechRate}x`;
       }
-      charCount = wordEnd + 1;
-    }
-  }
 
-  function loadSentence(index, excessChars = "") {
-    isTransitioning = false;
-    currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
-    currentWordIndex = -1;
-    hiddenInput.value = excessChars;
-    safeSetLocalStorage('smartbook_index', currentIndex);
-    fetchContextTranslation(currentIndex);
-    render();
-    speakSentence();
-  }
-
-  function nextSentence(e, excessChars = "") {
-    if (e) e.stopPropagation();
-    if (currentIndex < sentences.length - 1) {
-      loadSentence(currentIndex + 1, excessChars);
-    } else {
-      isTransitioning = false;
-    }
-  }
-
-  function prevSentence(e) {
-    if (e) e.stopPropagation();
-    if (currentIndex > 0) loadSentence(currentIndex - 1);
-  }
-
-  async function clearBookData() {
-    if (confirm("Вы уверены, что хотите сбросить сохраненные данные книги?")) {
-      localStorage.removeItem('smartbook_book');
-      localStorage.removeItem('smartbook_offline_sentences');
-      localStorage.removeItem('smartbook_offline_dict');
-      localStorage.removeItem('smartbook_index');
-      await removeFromDB('smartbook_offline_sentences');
-      await removeFromDB('smartbook_offline_dict');
-      isOfflineMode = false;
-      sentences = defaultSentences;
-      offlineSentencesData = [];
-      offlineDictionaryData = {};
       updateModeTag();
-      loadSentence(0);
-      closeModal('settingsModal');
+      loadSentence(currentIndex);
     }
-  }
 
-  hiddenInput.addEventListener('input', () => {
-    if (isTransitioning) return;
-    hiddenInput.value = cleanUserInput(hiddenInput.value);
-    checkWordPronunciation();
-    render();
-  });
+    function updateModeTag() {
+      if (isOfflineMode) {
+        modeTag.textContent = "Офлайн (.json)";
+        modeTag.style.background = "rgba(0, 240, 255, 0.2)";
+        modeTag.style.color = "var(--accent-color)";
+      } else {
+        modeTag.textContent = "Онлайн";
+        modeTag.style.background = "rgba(255, 204, 0, 0.2)";
+        modeTag.style.color = "var(--yandex-color)";
+      }
+    }
 
-  function readFileAsText(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve({ name: file.name, content: e.target.result });
-      reader.onerror = e => reject(e);
-      reader.readAsText(file);
-    });
-  }
+    function speak(text) {
+      if (!synth) return;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = speechRate;
+      if (selectedVoice) u.voice = selectedVoice;
+      synth.speak(u);
+    }
 
-  document.getElementById('fileInput').addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
+    function speakSentence(e) {
+      if (e) e.stopPropagation();
+      speak(sentences[currentIndex]);
+    }
 
-    try {
-      const fileResults = await Promise.all(files.map(readFileAsText));
-      let loadedJsonBook = false;
-      let loadedJsonDict = false;
-      let loadedTxtBook = false;
+    async function fetchContextTranslation(index) {
+      if (isOfflineMode && offlineSentencesData[index] && (offlineSentencesData[index].ru || offlineSentencesData[index].translation)) {
+        ruDisplay.textContent = offlineSentencesData[index].ru || offlineSentencesData[index].translation;
+        return;
+      }
 
-      for (const fileObj of fileResults) {
-        const { name, content } = fileObj;
+      ruDisplay.textContent = "Загрузка перевода...";
+      const curr = sentences[index];
+      if (!curr) return;
 
-        if (name.endsWith('.json')) {
-          const parsed = JSON.parse(content);
-          
-          // 1. Поиск списка предложений
-          let sentencesList = null;
-          if (Array.isArray(parsed)) {
-            if (parsed.length > 0 && (parsed[0].en || parsed[0].text)) sentencesList = parsed;
-          } else if (parsed.sentences && Array.isArray(parsed.sentences)) {
-            sentencesList = parsed.sentences;
-          } else if (parsed.book && Array.isArray(parsed.book)) {
-            sentencesList = parsed.book;
+      try {
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(curr)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data[0]) {
+            ruDisplay.textContent = data[0].map(item => item[0]).join('');
+            return;
           }
+        }
+      } catch(e) {}
 
-          if (sentencesList) {
-            offlineSentencesData = sentencesList;
-            sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : (s.en || s.text || ""));
-            await saveToDB('smartbook_offline_sentences', offlineSentencesData);
-            loadedJsonBook = true;
-          }
+      ruDisplay.textContent = "Не удалось загрузить перевод предложения";
+    }
 
-          // 2. Поиск словаря (даже если есть книга в том же объекте)
-          let rawDict = null;
-          if (parsed.dictionary || parsed.words || parsed.dict) {
-            rawDict = parsed.dictionary || parsed.words || parsed.dict;
-          } else if (!sentencesList && typeof parsed === 'object') {
-            rawDict = parsed;
-          }
+    function findInOfflineDict(wordStr) {
+      if (!offlineDictionaryData || Object.keys(offlineDictionaryData).length === 0) return null;
 
-          if (rawDict) {
-            let tempDict = {};
-            if (Array.isArray(rawDict)) {
-              rawDict.forEach(item => {
-                if (typeof item === 'object' && item !== null) {
-                  const key = (item.en || item.word || item.key || item.term || '').toString();
-                  const normKey = normalizeDictKey(key);
-                  if (normKey) tempDict[normKey] = item.ru || item.translation || item.val || item.meaning || item;
-                }
-              });
-            } else if (typeof rawDict === 'object' && rawDict !== null) {
-              for (let k in rawDict) {
-                const normKey = normalizeDictKey(k);
-                if (normKey) {
-                  tempDict[normKey] = rawDict[k];
-                }
-                tempDict[k.toLowerCase().trim()] = rawDict[k];
-              }
-            }
+      const rawClean = wordStr.toLowerCase().trim();
+      const k1 = normalizeDictKey(rawClean);
+      const pureAlpha = rawClean.replace(/[^a-z]/g, "");
 
-            if (Object.keys(tempDict).length > 0) {
-              offlineDictionaryData = Object.assign({}, offlineDictionaryData, tempDict);
-              await saveToDB('smartbook_offline_dict', offlineDictionaryData);
-              loadedJsonDict = true;
-            }
-          }
-        } else if (name.endsWith('.txt')) {
-          const parsedSentences = normalizeText(content)
-            .replace(/\r?\n|\r/g, " ")
-            .split(/(?<=[.!?])\s+/)
-            .map(s => s.trim())
-            .filter(s => s.length > 3);
+      if (offlineDictionaryData[k1]) return offlineDictionaryData[k1];
+      if (offlineDictionaryData[rawClean]) return offlineDictionaryData[rawClean];
+      if (pureAlpha && offlineDictionaryData[pureAlpha]) return offlineDictionaryData[pureAlpha];
 
-          if (parsedSentences.length > 0) {
-            sentences = parsedSentences;
-            safeSetLocalStorage('smartbook_book', JSON.stringify(sentences));
-            loadedTxtBook = true;
-          }
+      const candidates = [];
+      if (k1.endsWith("'s")) candidates.push(k1.slice(0, -2));
+      if (k1.endsWith("s")) candidates.push(k1.slice(0, -1));
+      if (k1.endsWith("es")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
+      if (k1.endsWith("ed")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
+      if (k1.endsWith("ing")) candidates.push(k1.slice(0, -3), k1.slice(0, -3) + "e");
+      if (k1.endsWith("ies")) candidates.push(k1.slice(0, -3) + "y");
+      if (k1.endsWith("ied")) candidates.push(k1.slice(0, -3) + "y");
+      if (k1.endsWith("ly")) candidates.push(k1.slice(0, -2));
+
+      for (let cand of candidates) {
+        if (cand && offlineDictionaryData[cand]) {
+          return offlineDictionaryData[cand];
         }
       }
 
-      if (loadedJsonBook || loadedJsonDict) {
-        isOfflineMode = true;
-      } else if (loadedTxtBook) {
-        isOfflineMode = false;
-        offlineSentencesData = [];
-        offlineDictionaryData = {};
+      return null;
+    }
+
+    async function inspectWord(wordStr, event) {
+      if (event) event.stopPropagation();
+      
+      const rawWord = wordStr.trim();
+      const cleanWord = rawWord.replace(/[^a-zA-Z']/g, "").toLowerCase().trim();
+      if (!cleanWord) return;
+
+      document.getElementById('modalWord').textContent = rawWord;
+      document.getElementById('modalDetails').textContent = "";
+      document.getElementById('contextText').textContent = ruDisplay.textContent || "Загрузка контекста...";
+      document.getElementById('wordModal').style.display = 'flex';
+
+      let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
+      speak(wordToSpeak);
+
+      if (isOfflineMode) {
+        const offlineWordInfo = findInOfflineDict(rawWord) || findInOfflineDict(cleanWord);
+        if (offlineWordInfo) {
+          let ruText = "";
+          let detailsText = "";
+
+          if (typeof offlineWordInfo === 'string') {
+            ruText = offlineWordInfo;
+          } else if (typeof offlineWordInfo === 'object' && offlineWordInfo !== null) {
+            ruText = offlineWordInfo.ru || offlineWordInfo.translation || offlineWordInfo.val || offlineWordInfo.meaning || "";
+            detailsText = offlineWordInfo.details || offlineWordInfo.definition || offlineWordInfo.ex || offlineWordInfo.examples || "";
+            if (Array.isArray(ruText)) ruText = ruText.join(', ');
+          }
+
+          if (typeof ruText === 'string' && (ruText.includes(',') || ruText.includes(';'))) {
+            const meanings = ruText.split(/[,;]/).map(m => m.trim()).filter(Boolean);
+            document.getElementById('modalTrans').innerHTML = meanings.map(m => `• ${m}`).join('<br>');
+          } else {
+            document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
+          }
+
+          document.getElementById('modalDetails').innerHTML = detailsText ? `<div>${detailsText}</div>` : "";
+        } else {
+          document.getElementById('modalTrans').innerHTML = "<span style='color:var(--accent-color); font-weight:normal;'>Слово не найдено в офлайн-словаре</span>";
+          document.getElementById('modalDetails').innerHTML = "<div style='color:var(--error-color); font-size:0.8rem; margin-top:5px;'>Убедитесь, что загруженный JSON-файл содержит словарь.</div>";
+        }
+        return;
+      }
+
+      document.getElementById('modalTrans').textContent = "Загрузка...";
+
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`;
+        const res = await fetch(url);
+
+        if (res.ok) {
+          const data = await res.json();
+          let mainTrans = (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : "";
+
+          if (mainTrans) {
+            document.getElementById('modalTrans').textContent = mainTrans;
+            document.getElementById('modalDetails').textContent = "";
+          } else {
+            document.getElementById('modalTrans').textContent = "Перевод не найден";
+          }
+        } else {
+          throw new Error("HTTP Error");
+        }
+      } catch(e) {
+        document.getElementById('modalTrans').textContent = "Не удалось загрузить перевод";
+      }
+    }
+
+    async function callAITutor(e) {
+      if (e) e.stopPropagation();
+      
+      const aiModal = document.getElementById('aiModal');
+      const aiContent = document.getElementById('aiResponseContent');
+      aiModal.style.display = 'flex';
+
+      if (isOfflineMode && offlineSentencesData[currentIndex] && offlineSentencesData[currentIndex].ai_tutor) {
+        aiContent.innerHTML = offlineSentencesData[currentIndex].ai_tutor;
+        return;
+      }
+
+      aiContent.innerHTML = '<div class="ai-loading">Репетитор печатает ответ... ⏳</div>';
+
+      const currentEn = sentences[currentIndex];
+      const currentRu = ruDisplay.textContent;
+      const promptText = `Разбери грамматику и построение этого английского предложения: "${currentEn}" (Перевод: ${currentRu}). Напиши кратко, структурно (используй списки и выделение жирным), объясняй на русском языке. Укажи время глаголов и интересные речевые обороты, если они есть.`;
+
+      try {
+        const response = await fetch("https://text.pollinations.ai/", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [
+              { role: 'system', content: 'Ты - профессиональный и лаконичный репетитор английского языка. Отвечай дружелюбно.' },
+              { role: 'user', content: promptText }
+            ]
+          })
+        });
+
+        if (!response.ok) throw new Error("Network error");
+        let text = await response.text();
+        
+        const htmlText = text
+          .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+          .replace(/\*(.*?)\*/g, '<i>$1</i>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\n/g, '<br>');
+
+        aiContent.innerHTML = htmlText;
+      } catch (err) {
+        aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен.</span>';
+      }
+    }
+
+    // Перехват клавиш управления
+    document.addEventListener('keydown', (e) => {
+      // Вызов ИИ по Ctrl+Space
+      if (e.ctrlKey && e.code === 'Space') {
+        e.preventDefault();
+        callAITutor();
+        return;
+      }
+
+      // Авто-фокус на ввод при печати
+      if (document.activeElement !== hiddenInput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        hiddenInput.focus();
+      }
+    });
+
+    hiddenInput.addEventListener('keydown', (e) => {
+      // Переход к следующему предложению при Enter
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        nextSentence(null);
+      }
+    });
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+      focusInput();
+    }
+
+    function openSettings(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function focusInput() {
+      hiddenInput.focus();
+    }
+
+    function render() {
+      const text = sentences[currentIndex] || "";
+      const typed = hiddenInput.value;
+      enDisplay.innerHTML = '';
+      
+      let globalCharIndex = 0;
+      const words = text.split(' ');
+
+      words.forEach((word, wIdx) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word-span';
+        wordSpan.addEventListener('click', (e) => inspectWord(word, e));
+
+        word.split('').forEach((char) => {
+          const charIdx = globalCharIndex;
+          const span = document.createElement('span');
+          span.className = 'char';
+          span.textContent = char;
+
+          if (charIdx < typed.length) {
+            if (typed[charIdx] === text[charIdx]) {
+              span.classList.add('typed');
+            } else {
+              span.classList.add('error');
+            }
+          }
+          if (charIdx === typed.length && !isTransitioning) {
+            span.classList.add('cursor');
+          }
+
+          wordSpan.appendChild(span);
+          globalCharIndex++;
+        });
+        enDisplay.appendChild(wordSpan);
+
+        if (wIdx < words.length - 1) {
+          const spaceCharIdx = globalCharIndex;
+          const spaceSpan = document.createElement('span');
+          spaceSpan.className = 'char';
+          spaceSpan.textContent = ' ';
+
+          if (spaceCharIdx < typed.length) {
+            if (typed[spaceCharIdx] === text[spaceCharIdx]) {
+              spaceSpan.classList.add('typed');
+            } else {
+              spaceSpan.classList.add('error');
+            }
+          }
+          if (spaceCharIdx === typed.length && !isTransitioning) {
+            spaceSpan.classList.add('cursor');
+          }
+
+          enDisplay.appendChild(spaceSpan);
+          globalCharIndex++;
+        }
+      });
+
+      if (typed.length >= text.length && !isTransitioning) {
+        isTransitioning = true;
+        setTimeout(() => { nextSentence(null); }, 300);
+      }
+
+      slider.max = Math.max(0, sentences.length - 1);
+      slider.value = currentIndex;
+      navInfo.textContent = `Предложение ${currentIndex + 1}/${sentences.length}`;
+    }
+
+    function checkWordPronunciation() {
+      const text = sentences[currentIndex] || "";
+      const typed = hiddenInput.value;
+      const words = text.split(' ');
+      
+      let charCount = 0;
+      for (let i = 0; i < words.length; i++) {
+        const wordStart = charCount;
+        const wordEnd = charCount + words[i].length;
+        
+        if (typed.length >= wordStart && typed.length <= wordEnd) {
+          if (currentWordIndex !== i) {
+            currentWordIndex = i;
+            let cleanWord = words[i].replace(/[^a-zA-Z]/g, "");
+            if (cleanWord) {
+              let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
+              speak(wordToSpeak);
+            }
+          }
+          break;
+        }
+        charCount = wordEnd + 1; // Учитываем пробел
+      }
+    }
+
+    function loadSentence(index, excessChars = "") {
+      isTransitioning = false;
+      currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
+      currentWordIndex = -1;
+      hiddenInput.value = excessChars;
+      safeSetLocalStorage('smartbook_index', currentIndex);
+      fetchContextTranslation(currentIndex);
+      render();
+      speakSentence();
+      focusInput();
+    }
+
+    function nextSentence(e, excessChars = "") {
+      if (e) e.stopPropagation();
+      if (currentIndex < sentences.length - 1) {
+        loadSentence(currentIndex + 1, excessChars);
+      } else {
+        isTransitioning = false;
+      }
+    }
+
+    function prevSentence(e) {
+      if (e) e.stopPropagation();
+      if (currentIndex > 0) loadSentence(currentIndex - 1);
+    }
+
+    async function clearBookData() {
+      if (confirm("Вы уверены, что хотите сбросить сохраненные данные книги?")) {
+        localStorage.removeItem('smartbook_book');
+        localStorage.removeItem('smartbook_offline_sentences');
+        localStorage.removeItem('smartbook_offline_dict');
+        localStorage.removeItem('smartbook_index');
         await removeFromDB('smartbook_offline_sentences');
         await removeFromDB('smartbook_offline_dict');
+        isOfflineMode = false;
+        sentences = defaultSentences;
+        offlineSentencesData = [];
+        offlineDictionaryData = {};
+        updateModeTag();
+        loadSentence(0);
+        closeModal('settingsModal');
       }
-
-      updateModeTag();
-      loadSentence(0);
-    } catch(err) {
-      alert("Ошибка при обработке файлов: " + err.message);
     }
-  });
 
-  slider.addEventListener('input', (e) => {
-    loadSentence(parseInt(e.target.value));
-  });
+    hiddenInput.addEventListener('input', () => {
+      if (isTransitioning) return;
+      hiddenInput.value = cleanUserInput(hiddenInput.value);
+      checkWordPronunciation();
+      render();
+    });
 
-  voiceSelect.addEventListener('change', (e) => {
-    const idx = parseInt(e.target.value);
-    selectedVoice = availableVoices[idx];
-    safeSetLocalStorage('smartbook_voice', idx);
-  });
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve({ name: file.name, content: e.target.result });
+        reader.onerror = e => reject(e);
+        reader.readAsText(file);
+      });
+    }
 
-  rateInput.addEventListener('input', (e) => {
-    speechRate = parseFloat(e.target.value);
-    document.getElementById('rateVal').textContent = `${speechRate}x`;
-    safeSetLocalStorage('smartbook_rate', speechRate);
-  });
+    // --- ОБРАБОТЧИК ЗАГРУЗКИ ФАЙЛОВ ---
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
 
-  function focusInput() { hiddenInput.focus(); }
+      try {
+        const fileResults = await Promise.all(files.map(readFileAsText));
 
-  initData();
-</script>
+        for (const fileObj of fileResults) {
+          const { name, content } = fileObj;
+
+          if (name.endsWith('.json')) {
+            const parsed = JSON.parse(content);
+            
+            let sentencesList = null;
+            if (Array.isArray(parsed)) {
+              if (parsed.length > 0 && (parsed[0].en || parsed[0].text)) sentencesList = parsed;
+            } else if (parsed.sentences && Array.isArray(parsed.sentences)) {
+              sentencesList = parsed.sentences;
+            } else if (parsed.book && Array.isArray(parsed.book)) {
+              sentencesList = parsed.book;
+            }
+
+            if (sentencesList) {
+              offlineSentencesData = sentencesList;
+              sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : (s.en || s.text || ""));
+              await saveToDB('smartbook_offline_sentences', offlineSentencesData);
+            }
+
+            let rawDict = null;
+            if (parsed.dictionary || parsed.words || parsed.dict) {
+              rawDict = parsed.dictionary || parsed.words || parsed.dict;
+            } else if (!sentencesList && typeof parsed === 'object') {
+              rawDict = parsed;
+            }
+
+            if (rawDict) {
+              let tempDict = {};
+              if (Array.isArray(rawDict)) {
+                rawDict.forEach(item => {
+                  if (typeof item === 'object' && item !== null) {
+                    const key = (item.en || item.word || item.key || item.term || '').toString();
+                    const normKey = normalizeDictKey(key);
+                    if (normKey) tempDict[normKey] = item.ru || item.translation || item.val || item.meaning || item;
+                  }
+                });
+              } else if (typeof rawDict === 'object' && rawDict !== null) {
+                for (let k in rawDict) {
+                  const normKey = normalizeDictKey(k);
+                  if (normKey) {
+                    tempDict[normKey] = rawDict[k];
+                  }
+                }
+              }
+
+              offlineDictionaryData = tempDict;
+              await saveToDB('smartbook_offline_dict', offlineDictionaryData);
+            }
+
+            isOfflineMode = true;
+          } else if (name.endsWith('.txt')) {
+            const rawLines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            sentences = rawLines;
+            isOfflineMode = false;
+            safeSetLocalStorage('smartbook_book', JSON.stringify(sentences));
+          }
+        }
+
+        updateModeTag();
+        loadSentence(0);
+        alert("Файл(ы) успешно загружены!");
+      } catch(err) {
+        alert("Ошибка чтения файла: " + err.message);
+      }
+    });
+
+    // Клик по контейнеру возвращает фокус на hiddenInput
+    document.addEventListener('click', (e) => {
+      const isModalOpen = document.getElementById('wordModal').style.display === 'flex' ||
+                          document.getElementById('aiModal').style.display === 'flex' ||
+                          document.getElementById('settingsModal').style.display === 'flex';
+      if (!isModalOpen && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT') {
+        focusInput();
+      }
+    });
+
+    // Запуск системы
+    initData();
+  </script>
 </body>
 </html>
