@@ -96,6 +96,15 @@
       font-weight: bold;
     }
 
+    .mode-tag {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--typed-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
     .nav-info {
       font-size: 0.8rem;
       color: var(--ru-color);
@@ -279,13 +288,14 @@
   <div class="top-bar">
     <div class="btn-group">
       <label class="file-btn">
-        📁 TXT
-        <input type="file" id="fileInput" accept=".txt" style="display:none;">
+        📁 Книга (.txt / .json)
+        <input type="file" id="fileInput" accept=".txt,.json" multiple style="display:none;">
       </label>
       <button class="icon-btn" onclick="openSettings(event)">⚙️ Настройки</button>
       <button class="icon-btn ai-top-btn" onclick="callAITutor(event)" title="ИИ-Репетитор (Ctrl + Space)">🤖</button>
     </div>
     <div class="nav-info">
+      <span id="modeTag" class="mode-tag">Онлайн</span>
       <span id="navInfo">Предложение 1/1</span>
       <span class="version-tag">v2.5</span>
     </div>
@@ -322,7 +332,7 @@
       <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9">
     </div>
 
-    <button class="danger-btn" onclick="clearBookData()">🗑️ Удалить сохраненную книгу</button>
+    <button class="danger-btn" onclick="clearBookData()">🗑️ Сбросить сохраненные данные</button>
   </div>
 </div>
 
@@ -340,14 +350,12 @@
 <div class="modal" id="aiModal" onclick="closeModal('aiModal')">
   <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
-    <h3 style="color: var(--ai-color); margin-bottom: 5px;">🤖 Встроенный ИИ-Репетитор</h3>
+    <h3 style="color: var(--ai-color); margin-bottom: 5px;">🤖 ИИ-Репетитор</h3>
     <p style="font-size: 0.8rem; color: var(--ru-color);">
-      Анализирую грамматику и построение текущего предложения...
+      Грамматический анализ и разбор предложения
     </p>
     
-    <div class="ai-chat-box" id="aiResponseContent">
-      <!-- Контент ИИ -->
-    </div>
+    <div class="ai-chat-box" id="aiResponseContent"></div>
   </div>
 </div>
 
@@ -361,6 +369,10 @@
   ];
 
   let sentences = defaultSentences;
+  let offlineSentencesData = [];
+  let offlineDictionaryData = {};
+  let isOfflineMode = false;
+
   let currentIndex = 0;
   let currentWordIndex = -1;
   let availableVoices = [];
@@ -374,6 +386,7 @@
   const hiddenInput = document.getElementById('hiddenInput');
   const slider = document.getElementById('sentenceSlider');
   const navInfo = document.getElementById('navInfo');
+  const modeTag = document.getElementById('modeTag');
   const voiceSelect = document.getElementById('voiceSelect');
   const rateInput = document.getElementById('rateInput');
 
@@ -424,14 +437,29 @@
   }
 
   function initData() {
-    const savedBook = localStorage.getItem('smartbook_book');
-    if (savedBook) {
+    const savedOfflineSentences = localStorage.getItem('smartbook_offline_sentences');
+    const savedOfflineDict = localStorage.getItem('smartbook_offline_dict');
+
+    if (savedOfflineSentences) {
       try {
-        sentences = JSON.parse(savedBook);
+        offlineSentencesData = JSON.parse(savedOfflineSentences);
+        offlineDictionaryData = savedOfflineDict ? JSON.parse(savedOfflineDict) : {};
+        isOfflineMode = true;
+        sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
       } catch(e) {
-        sentences = defaultSentences;
+        isOfflineMode = false;
+      }
+    } else {
+      const savedBook = localStorage.getItem('smartbook_book');
+      if (savedBook) {
+        try {
+          sentences = JSON.parse(savedBook);
+        } catch(e) {
+          sentences = defaultSentences;
+        }
       }
     }
+
     const savedIndex = localStorage.getItem('smartbook_index');
     if (savedIndex !== null) currentIndex = parseInt(savedIndex);
 
@@ -440,6 +468,20 @@
       speechRate = parseFloat(savedRate);
       rateInput.value = speechRate;
       document.getElementById('rateVal').textContent = `${speechRate}x`;
+    }
+
+    updateModeTag();
+  }
+
+  function updateModeTag() {
+    if (isOfflineMode) {
+      modeTag.textContent = "Офлайн (.json)";
+      modeTag.style.background = "rgba(16, 185, 129, 0.2)";
+      modeTag.style.color = "var(--typed-color)";
+    } else {
+      modeTag.textContent = "Онлайн (.txt)";
+      modeTag.style.background = "rgba(0, 240, 255, 0.2)";
+      modeTag.style.color = "var(--accent-color)";
     }
   }
 
@@ -459,6 +501,11 @@
   }
 
   async function fetchContextTranslation(index) {
+    if (isOfflineMode && offlineSentencesData[index] && offlineSentencesData[index].ru) {
+      ruDisplay.textContent = offlineSentencesData[index].ru;
+      return;
+    }
+
     ruDisplay.textContent = "Переводим...";
     const curr = sentences[index];
     try {
@@ -477,17 +524,27 @@
   async function inspectWord(wordStr, event) {
     if (event) event.stopPropagation();
     
-    const cleanWord = wordStr.replace(/[^a-zA-Z]/g, "").trim();
+    const cleanWord = wordStr.replace(/[^a-zA-Z]/g, "").toLowerCase().trim();
     if (!cleanWord) return;
 
     document.getElementById('modalWord').textContent = cleanWord;
-    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
     document.getElementById('modalDetails').textContent = "";
     document.getElementById('wordModal').style.display = 'flex';
 
-    let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
+    let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
     speak(wordToSpeak);
 
+    if (isOfflineMode && offlineDictionaryData[cleanWord]) {
+      const wordInfo = offlineDictionaryData[cleanWord];
+      const ruText = typeof wordInfo === 'string' ? wordInfo : (wordInfo.ru || wordInfo.translation);
+      const detailsText = typeof wordInfo === 'object' ? (wordInfo.details || wordInfo.definition || "") : "";
+
+      document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
+      document.getElementById('modalDetails').innerHTML = detailsText;
+      return;
+    }
+
+    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
     try {
       const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
       const data = await res.json();
@@ -499,7 +556,7 @@
     } catch(e) {}
 
     try {
-      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord.toLowerCase()}`);
+      const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
       if (dictRes.ok) {
         const dictData = await dictRes.json();
         const entry = dictData[0];
@@ -519,15 +576,19 @@
   async function callAITutor(e) {
     if (e) e.stopPropagation();
     
-    const currentEn = sentences[currentIndex];
-    const currentRu = ruDisplay.textContent;
-
     const aiModal = document.getElementById('aiModal');
     const aiContent = document.getElementById('aiResponseContent');
-    
     aiModal.style.display = 'flex';
+
+    if (isOfflineMode && offlineSentencesData[currentIndex] && offlineSentencesData[currentIndex].ai_tutor) {
+      aiContent.innerHTML = offlineSentencesData[currentIndex].ai_tutor;
+      return;
+    }
+
     aiContent.innerHTML = '<div class="ai-loading">Репетитор печатает ответ... ⏳</div>';
 
+    const currentEn = sentences[currentIndex];
+    const currentRu = ruDisplay.textContent;
     const promptText = `Разбери грамматику и построение этого английского предложения: "${currentEn}" (Перевод: ${currentRu}). Напиши кратко, структурно (используй списки и выделение жирным), объясняй на русском языке. Укажи время глаголов и интересные речевые обороты, если они есть.`;
 
     try {
@@ -543,7 +604,6 @@
       });
 
       if (!response.ok) throw new Error("Network error");
-      
       let text = await response.text();
       
       const htmlText = text
@@ -553,9 +613,8 @@
         .replace(/\n/g, '<br>');
 
       aiContent.innerHTML = htmlText;
-
     } catch (err) {
-      aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен. Попробуйте еще раз через пару минут.</span>';
+      aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен.</span>';
     }
   }
 
@@ -563,6 +622,14 @@
     if (e.ctrlKey && e.code === 'Space') {
       e.preventDefault();
       callAITutor();
+    }
+  });
+
+  // Нажатие Enter перелистывает предложение принудительно
+  hiddenInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      nextSentence(null);
     }
   });
 
@@ -577,7 +644,7 @@
   }
 
   function render() {
-    const text = sentences[currentIndex];
+    const text = sentences[currentIndex] || "";
     const typed = hiddenInput.value;
     enDisplay.innerHTML = '';
     
@@ -633,11 +700,11 @@
       }
     });
 
+    // Автоматическое перелистывание при безупречном вводе
     if (typed.length >= text.length && !isTransitioning) {
-      if (typed.startsWith(text)) {
+      if (typed === text) {
         isTransitioning = true;
-        const excessChars = typed.slice(text.length).trimStart();
-        setTimeout(() => { nextSentence(null, excessChars); }, 300);
+        setTimeout(() => { nextSentence(null); }, 300);
       }
     }
 
@@ -647,7 +714,7 @@
   }
 
   function checkWordPronunciation() {
-    const text = sentences[currentIndex];
+    const text = sentences[currentIndex] || "";
     const typed = hiddenInput.value;
     const words = text.split(' ');
     
@@ -695,10 +762,14 @@
   }
 
   function clearBookData() {
-    if (confirm("Вы уверены, что хотите сбросить сохраненную книгу?")) {
+    if (confirm("Вы уверены, что хотите сбросить сохраненные данные книги?")) {
       localStorage.removeItem('smartbook_book');
+      localStorage.removeItem('smartbook_offline_sentences');
+      localStorage.removeItem('smartbook_offline_dict');
       localStorage.removeItem('smartbook_index');
+      isOfflineMode = false;
       sentences = defaultSentences;
+      updateModeTag();
       loadSentence(0);
       closeModal('settingsModal');
     }
@@ -711,26 +782,54 @@
     render();
   });
 
+  // Загрузка файлов (.txt или двойная подгрузка .json)
   document.getElementById('fileInput').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const rawText = evt.target.result;
-      const parsedSentences = normalizeText(rawText)
-        .replace(/\r?\n|\r/g, " ")
-        .split(/(?<=[.!?])\s+/)
-        .map(s => s.trim())
-        .filter(s => s.length > 5);
+    let hasJson = files.some(f => f.name.endsWith('.json'));
 
-      if (parsedSentences.length > 0) {
-        sentences = parsedSentences;
-        localStorage.setItem('smartbook_book', JSON.stringify(sentences));
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const content = evt.target.result;
+
+        if (file.name.endsWith('.json')) {
+          isOfflineMode = true;
+          try {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed) || parsed.sentences) {
+              offlineSentencesData = parsed.sentences || parsed;
+              sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
+              localStorage.setItem('smartbook_offline_sentences', JSON.stringify(offlineSentencesData));
+            } else if (parsed.dictionary || typeof parsed === 'object') {
+              offlineDictionaryData = parsed.dictionary || parsed;
+              localStorage.setItem('smartbook_offline_dict', JSON.stringify(offlineDictionaryData));
+            }
+          } catch(err) {
+            alert("Ошибка чтения JSON: " + err.message);
+          }
+        } else if (file.name.endsWith('.txt') && !hasJson) {
+          isOfflineMode = false;
+          const parsedSentences = normalizeText(content)
+            .replace(/\r?\n|\r/g, " ")
+            .split(/(?<=[.!?])\s+/)
+            .map(s => s.trim())
+            .filter(s => s.length > 5);
+
+          if (parsedSentences.length > 0) {
+            sentences = parsedSentences;
+            localStorage.setItem('smartbook_book', JSON.stringify(sentences));
+            localStorage.removeItem('smartbook_offline_sentences');
+            localStorage.removeItem('smartbook_offline_dict');
+          }
+        }
+
+        updateModeTag();
         loadSentence(0);
-      }
-    };
-    reader.readAsText(file);
+      };
+      reader.readAsText(file);
+    });
   });
 
   slider.addEventListener('input', (e) => {
