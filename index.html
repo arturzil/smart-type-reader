@@ -329,7 +329,7 @@
       <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="0.9">
     </div>
 
-    <button class="danger-btn" onclick="clearBookData()">🗑️️ Сбросить сохраненные данные</button>
+    <button class="danger-btn" onclick="clearBookData()">🗑 Сбросить сохраненные данные</button>
   </div>
 </div>
 
@@ -387,6 +387,74 @@
 
   const pronunciationMap = { 'a': 'uh', 'i': 'eye' };
 
+  // --- Хранилище IndexedDB для больших файлов ---
+  const dbName = "SmartBookDB";
+  let db = null;
+
+  function initDB() {
+    return new Promise((resolve) => {
+      const request = indexedDB.open(dbName, 1);
+      request.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('store')) {
+          d.createObjectStore('store');
+        }
+      };
+      request.onsuccess = (e) => {
+        db = e.target.result;
+        resolve(db);
+      };
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  function saveToDB(key, val) {
+    return new Promise((resolve) => {
+      if (!db) return resolve();
+      try {
+        const tx = db.transaction('store', 'readwrite');
+        const store = tx.objectStore('store');
+        store.put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch(e) { resolve(); }
+    });
+  }
+
+  function getFromDB(key) {
+    return new Promise((resolve) => {
+      if (!db) return resolve(null);
+      try {
+        const tx = db.transaction('store', 'readonly');
+        const store = tx.objectStore('store');
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch(e) { resolve(null); }
+    });
+  }
+
+  function removeFromDB(key) {
+    return new Promise((resolve) => {
+      if (!db) return resolve();
+      try {
+        const tx = db.transaction('store', 'readwrite');
+        const store = tx.objectStore('store');
+        store.delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch(e) { resolve(); }
+    });
+  }
+
+  function safeSetLocalStorage(key, val) {
+    try {
+      localStorage.setItem(key, val);
+    } catch(e) {
+      console.warn(`Превышен лимит LocalStorage для ${key}, используем IndexedDB/RAM`);
+    }
+  }
+
   function normalizeText(text) {
     return text
       .replace(/[’`′‘]/g, "'")
@@ -431,14 +499,18 @@
     loadVoices();
   }
 
-  function initData() {
-    const savedOfflineSentences = localStorage.getItem('smartbook_offline_sentences');
-    const savedOfflineDict = localStorage.getItem('smartbook_offline_dict');
+  async function initData() {
+    await initDB();
+
+    const savedOfflineSentences = (await getFromDB('smartbook_offline_sentences')) || localStorage.getItem('smartbook_offline_sentences');
+    const savedOfflineDict = (await getFromDB('smartbook_offline_dict')) || localStorage.getItem('smartbook_offline_dict');
 
     if (savedOfflineSentences) {
       try {
-        offlineSentencesData = JSON.parse(savedOfflineSentences);
-        offlineDictionaryData = savedOfflineDict ? JSON.parse(savedOfflineDict) : {};
+        offlineSentencesData = typeof savedOfflineSentences === 'string' ? JSON.parse(savedOfflineSentences) : savedOfflineSentences;
+        if (savedOfflineDict) {
+          offlineDictionaryData = typeof savedOfflineDict === 'string' ? JSON.parse(savedOfflineDict) : savedOfflineDict;
+        }
         isOfflineMode = true;
         sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
       } catch(e) {
@@ -466,6 +538,7 @@
     }
 
     updateModeTag();
+    loadSentence(currentIndex);
   }
 
   function updateModeTag() {
@@ -496,7 +569,6 @@
   }
 
   async function fetchContextTranslation(index) {
-    // В ОФЛАЙН РЕЖИМЕ — ТОЛЬКО ЛОКАЛЬНЫЕ ДАННЫЕ
     if (isOfflineMode) {
       if (offlineSentencesData[index] && offlineSentencesData[index].ru) {
         ruDisplay.textContent = offlineSentencesData[index].ru;
@@ -534,7 +606,6 @@
     let wordToSpeak = pronunciationMap[cleanWord] || cleanWord;
     speak(wordToSpeak);
 
-    // --- СТРОГИЙ ОФЛАЙН РЕЖИМ С ПЕРЕВОДОМ ИЗ ФАЙЛА ---
     if (isOfflineMode) {
       const wordInfo = offlineDictionaryData[cleanWord];
       if (wordInfo) {
@@ -546,10 +617,9 @@
       } else {
         document.getElementById('modalTrans').textContent = "Перевод не найден в офлайн-словаре";
       }
-      return; // Завершаем функцию без обращения к сети
+      return;
     }
 
-    // --- ОНЛАЙН РЕЖИМ ---
     document.getElementById('modalTrans').textContent = "Загрузка перевода...";
     try {
       const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
@@ -745,7 +815,7 @@
     currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
     currentWordIndex = -1;
     hiddenInput.value = excessChars;
-    localStorage.setItem('smartbook_index', currentIndex);
+    safeSetLocalStorage('smartbook_index', currentIndex);
     fetchContextTranslation(currentIndex);
     render();
     speakSentence();
@@ -765,14 +835,18 @@
     if (currentIndex > 0) loadSentence(currentIndex - 1);
   }
 
-  function clearBookData() {
+  async function clearBookData() {
     if (confirm("Вы уверены, что хотите сбросить сохраненные данные книги?")) {
       localStorage.removeItem('smartbook_book');
       localStorage.removeItem('smartbook_offline_sentences');
       localStorage.removeItem('smartbook_offline_dict');
       localStorage.removeItem('smartbook_index');
+      await removeFromDB('smartbook_offline_sentences');
+      await removeFromDB('smartbook_offline_dict');
       isOfflineMode = false;
       sentences = defaultSentences;
+      offlineSentencesData = [];
+      offlineDictionaryData = {};
       updateModeTag();
       loadSentence(0);
       closeModal('settingsModal');
@@ -795,7 +869,7 @@
 
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = function(evt) {
+      reader.onload = async function(evt) {
         const content = evt.target.result;
 
         if (file.name.endsWith('.json')) {
@@ -803,33 +877,31 @@
           try {
             const parsed = JSON.parse(content);
             
-            // Если это книга (массив объектов с ключами en/ru или с массивом sentences)
+            // Если книга
             if ((Array.isArray(parsed) && parsed.length > 0 && ('en' in parsed[0] || 'text' in parsed[0])) || parsed.sentences) {
               offlineSentencesData = parsed.sentences || parsed;
               sentences = offlineSentencesData.map(s => typeof s === 'string' ? s : s.en);
-              localStorage.setItem('smartbook_offline_sentences', JSON.stringify(offlineSentencesData));
+              await saveToDB('smartbook_offline_sentences', offlineSentencesData);
             } 
-            // Если это словарь
+            // Если словарь
             else {
               let rawDict = parsed.dictionary || parsed;
               offlineDictionaryData = {};
               
               if (Array.isArray(rawDict)) {
-                // Если словарь представлен массивом [{word: "...", ru: "..."}]
                 rawDict.forEach(item => {
                   const key = (item.word || item.key || item.en || '').toLowerCase().trim();
                   if (key) offlineDictionaryData[key] = item.ru || item.translation || item.value || item;
                 });
               } else if (typeof rawDict === 'object') {
-                // Если словарь представлен объектом {"word": "translation"}
                 for (let k in rawDict) {
                   offlineDictionaryData[k.toLowerCase().trim()] = rawDict[k];
                 }
               }
-              localStorage.setItem('smartbook_offline_dict', JSON.stringify(offlineDictionaryData));
+              await saveToDB('smartbook_offline_dict', offlineDictionaryData);
             }
           } catch(err) {
-            alert("Ошибка чтения JSON: " + err.message);
+            alert("Ошибка чтения JSON файла: " + err.message);
           }
         } else if (file.name.endsWith('.txt') && !hasJson) {
           isOfflineMode = false;
@@ -841,9 +913,9 @@
 
           if (parsedSentences.length > 0) {
             sentences = parsedSentences;
-            localStorage.setItem('smartbook_book', JSON.stringify(sentences));
-            localStorage.removeItem('smartbook_offline_sentences');
-            localStorage.removeItem('smartbook_offline_dict');
+            safeSetLocalStorage('smartbook_book', JSON.stringify(sentences));
+            await removeFromDB('smartbook_offline_sentences');
+            await removeFromDB('smartbook_offline_dict');
           }
         }
 
@@ -861,19 +933,18 @@
   voiceSelect.addEventListener('change', (e) => {
     const idx = parseInt(e.target.value);
     selectedVoice = availableVoices[idx];
-    localStorage.setItem('smartbook_voice', idx);
+    safeSetLocalStorage('smartbook_voice', idx);
   });
 
   rateInput.addEventListener('input', (e) => {
     speechRate = parseFloat(e.target.value);
     document.getElementById('rateVal').textContent = `${speechRate}x`;
-    localStorage.setItem('smartbook_rate', speechRate);
+    safeSetLocalStorage('smartbook_rate', speechRate);
   });
 
   function focusInput() { hiddenInput.focus(); }
 
   initData();
-  loadSentence(currentIndex);
 </script>
 </body>
 </html>
