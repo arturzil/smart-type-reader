@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.3</title>
+  <title>SmartBook Cyber-Type v2.4</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -15,6 +15,7 @@
       --error-bg: rgba(239, 68, 68, 0.35);
       --error-color: #f87171;
       --ru-color: #94a3b8;
+      --ai-color: #b026ff;
     }
 
     * {
@@ -60,6 +61,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .file-btn, .icon-btn {
@@ -73,7 +75,15 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      transition: all 0.2s;
     }
+
+    .ai-top-btn {
+      background: rgba(176, 38, 255, 0.1);
+      border-color: var(--ai-color);
+      color: var(--ai-color);
+    }
+    .ai-top-btn:hover { background: rgba(176, 38, 255, 0.2); }
 
     .version-tag {
       background: rgba(0, 240, 255, 0.2);
@@ -137,10 +147,7 @@
       border-bottom: 2px solid transparent;
     }
 
-    .char.typed {
-      color: var(--typed-color);
-    }
-
+    .char.typed { color: var(--typed-color); }
     .char.error {
       background-color: var(--error-bg);
       color: var(--error-color);
@@ -151,9 +158,7 @@
       animation: blink 1s infinite;
     }
 
-    @keyframes blink {
-      50% { border-bottom-color: transparent; }
-    }
+    @keyframes blink { 50% { border-bottom-color: transparent; } }
 
     .ru-display {
       font-size: 1.05rem;
@@ -163,23 +168,10 @@
       padding-top: 10px;
     }
 
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .slider-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .slider {
-      flex-grow: 1;
-      accent-color: var(--accent-color);
-    }
-
+    .controls { display: flex; flex-direction: column; gap: 10px; }
+    .slider-wrapper { display: flex; align-items: center; gap: 10px; }
+    .slider { flex-grow: 1; accent-color: var(--accent-color); }
+    
     #hiddenInput {
       position: absolute;
       opacity: 0;
@@ -187,10 +179,11 @@
       left: -1000px;
     }
 
+    /* Модальные окна */
     .modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       display: none;
       justify-content: center;
       align-items: center;
@@ -209,6 +202,8 @@
       position: relative;
     }
 
+    .ai-modal-content { border-color: var(--ai-color); }
+
     .modal-close {
       position: absolute;
       top: 10px; right: 12px;
@@ -219,18 +214,8 @@
       cursor: pointer;
     }
 
-    .setting-row {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .setting-row label {
-      font-size: 0.85rem;
-      color: var(--ru-color);
-    }
-
+    .setting-row { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .setting-row label { font-size: 0.85rem; color: var(--ru-color); }
     .setting-row select, .setting-row input[type="range"] {
       background: #0d0f17;
       color: var(--text-main);
@@ -251,27 +236,23 @@
       width: 100%;
     }
 
-    .modal-word {
-      font-size: 1.5rem;
-      color: var(--accent-color);
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .modal-trans {
-      font-size: 1.25rem;
-      color: #10b981;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-
+    .modal-word { font-size: 1.5rem; color: var(--accent-color); font-weight: bold; margin-bottom: 6px; }
+    .modal-trans { font-size: 1.25rem; color: #10b981; margin-bottom: 10px; font-weight: bold; }
     .modal-details {
-      font-size: 0.85rem;
-      color: var(--text-main);
-      line-height: 1.4;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 8px;
+      font-size: 0.85rem; color: var(--text-main);
+      line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
     }
+
+    /* Кнопки нейросетей */
+    .ai-services { display: flex; gap: 10px; margin-top: 15px; }
+    .ai-link-btn {
+      flex: 1; text-align: center; padding: 10px; border-radius: 8px;
+      text-decoration: none; font-weight: bold; color: white; transition: 0.2s;
+    }
+    .ya-btn { background: #fc3f1d; }
+    .ya-btn:hover { background: #e03517; }
+    .gpt-btn { background: #10a37f; }
+    .gpt-btn:hover { background: #0d8c6d; }
   </style>
 </head>
 <body>
@@ -284,10 +265,11 @@
         <input type="file" id="fileInput" accept=".txt" style="display:none;">
       </label>
       <button class="icon-btn" onclick="openSettings(event)">⚙️ Настройки</button>
+      <button class="icon-btn ai-top-btn" onclick="callAITutor(event)" title="Горячая клавиша: Ctrl + Пробел">🤖 ИИ-Репетитор (Ctrl+Space)</button>
     </div>
     <div class="nav-info">
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.3</span>
+      <span class="version-tag">v2.4</span>
     </div>
   </div>
 
@@ -336,6 +318,27 @@
   </div>
 </div>
 
+<!-- Модальное окно ИИ-Репетитора -->
+<div class="modal" id="aiModal" onclick="closeModal('aiModal')">
+  <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
+    <h3 style="color: var(--ai-color); margin-bottom: 10px;">🤖 ИИ-Репетитор</h3>
+    <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 15px;">
+      Запрос для детального разбора грамматики сформирован и <b>скопирован в буфер обмена!</b>
+    </p>
+    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; color: #a5b4fc; font-size: 0.85rem; margin-bottom: 15px; font-style: italic;">
+      <span id="aiPromptText"></span>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--ru-color);">
+      Выберите нейросеть ниже. В открывшемся окне чата нажмите <b>Ctrl + V</b> (Вставить) и отправьте сообщение репетитору.
+    </p>
+    <div class="ai-services">
+      <a href="https://ya.ru/alice" target="_blank" class="ai-link-btn ya-btn">Алиса (Яндекс)</a>
+      <a href="https://chatgpt.com" target="_blank" class="ai-link-btn gpt-btn">ChatGPT</a>
+    </div>
+  </div>
+</div>
+
 <input type="text" id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false">
 
 <script>
@@ -351,6 +354,7 @@
   let availableVoices = [];
   let selectedVoice = null;
   let speechRate = 0.9;
+  let isTransitioning = false; // Флаг для защиты от двойного перепрыгивания
 
   const synth = window.speechSynthesis;
   const enDisplay = document.getElementById('enDisplay');
@@ -361,7 +365,12 @@
   const voiceSelect = document.getElementById('voiceSelect');
   const rateInput = document.getElementById('rateInput');
 
-  // Нормализация кавычек и длинных тире
+  // Карта коррекции произношения для коротких слов
+  const pronunciationMap = {
+    'a': 'uh',
+    'i': 'eye'
+  };
+
   function normalizeText(text) {
     return text
       .replace(/[’`′‘]/g, "'")
@@ -372,7 +381,6 @@
       .replace(/\s+/g, " ");
   }
 
-  // Очистка ввода пользователя без блокировки пробелов
   function cleanUserInput(input) {
     return input
       .replace(/[’`′‘]/g, "'")
@@ -473,7 +481,9 @@
     document.getElementById('modalDetails').textContent = "";
     document.getElementById('wordModal').style.display = 'flex';
 
-    speak(cleanWord);
+    // Озвучка отдельного слова при клике с учетом корректировки
+    let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
+    speak(wordToSpeak);
 
     try {
       const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
@@ -505,6 +515,31 @@
       }
     } catch(e) {}
   }
+
+  // --- ИИ РЕПЕТИТОР ЛОГИКА ---
+  function callAITutor(e) {
+    if (e) e.stopPropagation();
+    const currentEn = sentences[currentIndex];
+    const currentRu = ruDisplay.textContent;
+
+    const promptText = `Выступи в роли профессионального репетитора английского языка. Объясни мне грамматику, правила построения и особенности этого предложения: "${currentEn}" (Перевод: ${currentRu}). Разбери сложные конструкции простым языком.`;
+    
+    // Копируем в буфер обмена
+    navigator.clipboard.writeText(promptText).then(() => {
+      document.getElementById('aiPromptText').textContent = promptText;
+      document.getElementById('aiModal').style.display = 'flex';
+    }).catch(err => {
+      alert("Не удалось скопировать текст. Разрешите браузеру доступ к буферу обмена.");
+    });
+  }
+
+  // Слушатель глобальных клавиш (Ctrl + Space)
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.code === 'Space') {
+      e.preventDefault(); // Предотвращаем ввод пробела
+      callAITutor();
+    }
+  });
 
   function closeModal(id) {
     document.getElementById(id).style.display = 'none';
@@ -543,7 +578,7 @@
           }
         }
 
-        if (charIdx === typed.length) {
+        if (charIdx === typed.length && !isTransitioning) {
           span.classList.add('cursor');
         }
 
@@ -567,7 +602,7 @@
           }
         }
 
-        if (spaceCharIdx === typed.length) {
+        if (spaceCharIdx === typed.length && !isTransitioning) {
           spaceSpan.classList.add('cursor');
         }
 
@@ -576,10 +611,17 @@
       }
     });
 
-    if (typed.length >= text.length && text.length > 0) {
-      setTimeout(() => {
-        nextSentence();
-      }, 300);
+    // ИСПРАВЛЕНИЕ: Логика перехода на следующее предложение с сохранением "хвоста"
+    if (typed.length >= text.length && !isTransitioning) {
+      // Переходим только если весь текст набран правильно (проверяем совпадение начала строки)
+      if (typed.startsWith(text)) {
+        isTransitioning = true;
+        const excessChars = typed.slice(text.length).trimStart(); // Сохраняем случайно напечатанные пробелы и буквы
+        
+        setTimeout(() => {
+          nextSentence(null, excessChars);
+        }, 300);
+      }
     }
 
     slider.max = Math.max(0, sentences.length - 1);
@@ -600,7 +642,11 @@
       if (typed.length >= wordStart && typed.length < wordEnd) {
         if (currentWordIndex !== i) {
           currentWordIndex = i;
-          speak(words[i].replace(/[^a-zA-Z]/g, ""));
+          let cleanWord = words[i].replace(/[^a-zA-Z]/g, "");
+          
+          // Применяем корректировку для коротких слов
+          let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
+          speak(wordToSpeak);
         }
         break;
       }
@@ -608,19 +654,24 @@
     }
   }
 
-  function loadSentence(index) {
+  function loadSentence(index, excessChars = "") {
+    isTransitioning = false;
     currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
     currentWordIndex = -1;
-    hiddenInput.value = '';
+    hiddenInput.value = excessChars; // Подставляем хвост от прошлого ввода, чтобы не терять буквы
     localStorage.setItem('smartbook_index', currentIndex);
     fetchContextTranslation(currentIndex);
     render();
     speakSentence();
   }
 
-  function nextSentence(e) {
+  function nextSentence(e, excessChars = "") {
     if (e) e.stopPropagation();
-    if (currentIndex < sentences.length - 1) loadSentence(currentIndex + 1);
+    if (currentIndex < sentences.length - 1) {
+      loadSentence(currentIndex + 1, excessChars);
+    } else {
+      isTransitioning = false; // Книга закончилась, снимаем блок
+    }
   }
 
   function prevSentence(e) {
@@ -639,6 +690,7 @@
   }
 
   hiddenInput.addEventListener('input', () => {
+    if (isTransitioning) return; // Блокируем обработку во время визуальной паузы
     hiddenInput.value = cleanUserInput(hiddenInput.value);
     checkWordPronunciation();
     render();
