@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.7 (Yandex Engine)</title>
+  <title>SmartBook Cyber-Type v2.8 (Yandex Engine & Smart Dict)</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -211,6 +211,8 @@
       width: 100%;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
       position: relative;
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
     .ai-modal-content { border-color: var(--ai-color); }
@@ -248,7 +250,7 @@
     }
 
     .modal-word { font-size: 1.5rem; color: var(--accent-color); font-weight: bold; margin-bottom: 6px; }
-    .modal-trans { font-size: 1.25rem; color: #10b981; margin-bottom: 10px; font-weight: bold; }
+    
     .context-box {
       background: rgba(255, 204, 0, 0.08);
       border-left: 3px solid var(--yandex-color);
@@ -257,10 +259,19 @@
       border-radius: 4px;
       font-size: 0.85rem;
       color: #f1f5f9;
+      line-height: 1.4;
     }
+
+    .modal-trans-list {
+      font-size: 1.05rem;
+      color: #10b981;
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
     .modal-details {
       font-size: 0.85rem; color: var(--text-main);
-      line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
+      line-height: 1.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;
     }
 
     .ai-chat-box {
@@ -305,7 +316,7 @@
     <div class="nav-info">
       <span id="modeTag" class="mode-tag">Яндекс Онлайн</span>
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.7</span>
+      <span class="version-tag">v2.8</span>
     </div>
   </div>
 
@@ -347,11 +358,14 @@
   <div class="modal-content" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal('wordModal')">✕</button>
     <div class="modal-word" id="modalWord">Word</div>
-    <div class="modal-trans" id="modalTrans">Загрузка...</div>
+    
     <div class="context-box" id="modalContext">
       <b>Контекст предложения:</b><br>
       <span id="contextText">...</span>
     </div>
+
+    <div style="font-size: 0.85rem; color: var(--ru-color); margin-top: 10px;">Значения слова:</div>
+    <div class="modal-trans-list" id="modalTrans">Загрузка...</div>
     <div class="modal-details" id="modalDetails"></div>
   </div>
 </div>
@@ -486,6 +500,12 @@
       .replace(/[—–]/g, "-");
   }
 
+  // --- Нормализация ключа словаря ---
+  function normalizeDictKey(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.toLowerCase().trim().replace(/['’`′‘]/g, "'").replace(/[^a-z0-9']/g, "");
+  }
+
   function loadVoices() {
     if (!synth) return;
     const voices = synth.getVoices();
@@ -582,7 +602,6 @@
     speak(sentences[currentIndex]);
   }
 
-  // --- Функция обращения к Яндекс Переводчику ---
   async function yandexTranslateText(text) {
     try {
       const url = `https://translate.yandex.net/api/v1/tr.json/translate?srv=tr-text&lang=en-ru&text=${encodeURIComponent(text)}`;
@@ -595,7 +614,6 @@
       }
     } catch(e) {}
 
-    // Резервный источник (если сработало ограничение)
     try {
       const res2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ru`);
       if (res2.ok) {
@@ -631,24 +649,34 @@
     }
   }
 
-  // Поиск слова в офлайн-словаре
+  // --- Улучшенный алгоритм поиска в офлайн-словаре ---
   function findInOfflineDict(wordStr) {
     if (!offlineDictionaryData || Object.keys(offlineDictionaryData).length === 0) return null;
 
-    const w = wordStr.toLowerCase().trim();
-    const wClean = w.replace(/[^a-z0-9]/g, "");
+    const rawClean = wordStr.toLowerCase().trim();
+    const k1 = normalizeDictKey(rawClean);
 
-    if (offlineDictionaryData[w]) return offlineDictionaryData[w];
-    if (offlineDictionaryData[wClean]) return offlineDictionaryData[wClean];
+    if (!k1) return null;
 
+    // Прямой поиск
+    if (offlineDictionaryData[k1]) return offlineDictionaryData[k1];
+    if (offlineDictionaryData[rawClean]) return offlineDictionaryData[rawClean];
+
+    // Стемминг (поиск базовой формы слова)
     const candidates = [];
-    if (wClean.endsWith('s')) candidates.push(wClean.slice(0, -1));
-    if (wClean.endsWith('es')) candidates.push(wClean.slice(0, -2));
-    if (wClean.endsWith('ed')) candidates.push(wClean.slice(0, -2), wClean.slice(0, -1));
-    if (wClean.endsWith('ing')) candidates.push(wClean.slice(0, -3), wClean.slice(0, -3) + 'e');
+    if (k1.endsWith("'s")) candidates.push(k1.slice(0, -2));
+    if (k1.endsWith("s")) candidates.push(k1.slice(0, -1));
+    if (k1.endsWith("es")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
+    if (k1.endsWith("ed")) candidates.push(k1.slice(0, -2), k1.slice(0, -1));
+    if (k1.endsWith("ing")) candidates.push(k1.slice(0, -3), k1.slice(0, -3) + "e");
+    if (k1.endsWith("ies")) candidates.push(k1.slice(0, -3) + "y");
+    if (k1.endsWith("ied")) candidates.push(k1.slice(0, -3) + "y");
+    if (k1.endsWith("ly")) candidates.push(k1.slice(0, -2));
 
     for (let cand of candidates) {
-      if (cand && offlineDictionaryData[cand]) return offlineDictionaryData[cand];
+      if (cand && offlineDictionaryData[cand]) {
+        return offlineDictionaryData[cand];
+      }
     }
 
     return null;
@@ -658,7 +686,7 @@
     if (event) event.stopPropagation();
     
     const rawWord = wordStr.trim();
-    const cleanWord = rawWord.replace(/[^a-zA-Z]/g, "").toLowerCase().trim();
+    const cleanWord = rawWord.replace(/[^a-zA-Z']/g, "").toLowerCase().trim();
     if (!cleanWord) return;
 
     document.getElementById('modalWord').textContent = rawWord;
@@ -672,44 +700,69 @@
     if (isOfflineMode) {
       const wordInfo = findInOfflineDict(rawWord) || findInOfflineDict(cleanWord);
       if (wordInfo) {
-        const ruText = typeof wordInfo === 'string' ? wordInfo : (wordInfo.ru || wordInfo.translation || wordInfo.val || JSON.stringify(wordInfo));
-        const detailsText = typeof wordInfo === 'object' ? (wordInfo.details || wordInfo.definition || wordInfo.ex || "") : "";
+        let ruText = "";
+        let detailsText = "";
 
-        document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
-        document.getElementById('modalDetails').innerHTML = detailsText;
+        if (typeof wordInfo === 'string') {
+          ruText = wordInfo;
+        } else if (typeof wordInfo === 'object' && wordInfo !== null) {
+          ruText = wordInfo.ru || wordInfo.translation || wordInfo.val || wordInfo.meaning || "";
+          detailsText = wordInfo.details || wordInfo.definition || wordInfo.ex || wordInfo.examples || "";
+          if (Array.isArray(ruText)) ruText = ruText.join(', ');
+        }
+
+        // Вывод списка значений при наличии запятых или нескольких вариантов
+        if (typeof ruText === 'string' && (ruText.includes(',') || ruText.includes(';'))) {
+          const meanings = ruText.split(/[,;]/).map(m => m.trim()).filter(Boolean);
+          document.getElementById('modalTrans').innerHTML = meanings.map(m => `• ${m}`).join('<br>');
+        } else {
+          document.getElementById('modalTrans').textContent = ruText || "Перевод отсутствует";
+        }
+
+        document.getElementById('modalDetails').innerHTML = detailsText ? `<div>${detailsText}</div>` : "";
       } else {
-        document.getElementById('modalTrans').textContent = "Перевод не найден в офлайн-словаре";
+        document.getElementById('modalTrans').textContent = "Слово не найдено в офлайн-словаре";
+        document.getElementById('modalDetails').innerHTML = "<i style='color:#ef4444;'>Убедитесь, что загруженный JSON-файл содержит структуру словаря (например, { \"word\": \"перевод\" }).</i>";
       }
       return;
     }
 
-    // Онлайн перевод через Яндекс
-    document.getElementById('modalTrans').textContent = "Загрузка перевода...";
-    const wordTrans = await yandexTranslateText(cleanWord);
+    // Онлайн перевод через Яндекс + показ всех значений через Dictionary API
+    document.getElementById('modalTrans').textContent = "Загрузка вариантов...";
     
-    if (wordTrans) {
-      document.getElementById('modalTrans').textContent = wordTrans;
-    } else {
-      document.getElementById('modalTrans').textContent = "Не удалось перевести слово";
-    }
-
-    // Подгрузка подробных значений слова (Dictionary API)
+    const mainTrans = await yandexTranslateText(cleanWord);
+    
     try {
       const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
       if (dictRes.ok) {
         const dictData = await dictRes.json();
         const entry = dictData[0];
-        let detailsHtml = "";
-        if (entry.meanings) {
-          entry.meanings.slice(0, 2).forEach(m => {
-            if (m.definitions && m.definitions[0]) {
-              detailsHtml += `<div style="margin-top:4px;"><b>[${m.partOfSpeech}]</b>${m.definitions[0].definition}</div>`;
+        
+        let meaningsHtml = "";
+        let optionsList = [];
+
+        if (mainTrans) {
+          optionsList.push(`• <b>${mainTrans}</b> <span style="font-size:0.75rem; color:var(--yandex-color);">(контекстный перевод Яндекс)</span>`);
+        }
+
+        if (entry && entry.meanings) {
+          entry.meanings.forEach(m => {
+            const part = m.partOfSpeech ? `[<i>${m.partOfSpeech}</i>]` : "";
+            const def = m.definitions && m.definitions[0] ? m.definitions[0].definition : "";
+            if (def) {
+              meaningsHtml += `<div style="margin-top:8px;"><b>${part}</b>${def}</div>`;
             }
           });
         }
-        document.getElementById('modalDetails').innerHTML = detailsHtml;
+
+        document.getElementById('modalTrans').innerHTML = optionsList.length > 0 ? optionsList.join('<br>') : (mainTrans || "Перевод не найден");
+        document.getElementById('modalDetails').innerHTML = meaningsHtml;
+      } else {
+        document.getElementById('modalTrans').textContent = mainTrans || "Не удалось перевести";
       }
-    } catch(e) {}
+    } catch(e) {
+      document.getElementById('modalTrans').textContent = mainTrans || "Не удалось перевести";
+    }
   }
 
   async function callAITutor(e) {
@@ -967,12 +1020,17 @@
             if (Array.isArray(rawDict)) {
               rawDict.forEach(item => {
                 if (typeof item === 'object' && item !== null) {
-                  const key = (item.en || item.word || item.key || '').toLowerCase().trim();
-                  if (key) tempDict[key] = item.ru || item.translation || item.val || item.meaning || item;
+                  const key = (item.en || item.word || item.key || item.term || '').toString();
+                  const normKey = normalizeDictKey(key);
+                  if (normKey) tempDict[normKey] = item.ru || item.translation || item.val || item.meaning || item;
                 }
               });
             } else if (typeof rawDict === 'object' && rawDict !== null) {
               for (let k in rawDict) {
+                const normKey = normalizeDictKey(k);
+                if (normKey) {
+                  tempDict[normKey] = rawDict[k];
+                }
                 tempDict[k.toLowerCase().trim()] = rawDict[k];
               }
             }
