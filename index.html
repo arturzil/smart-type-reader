@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartBook Cyber-Type v2.4</title>
+  <title>SmartBook Cyber-Type v2.5</title>
   <style>
     :root {
       --bg-color: #0d0f17;
@@ -196,7 +196,7 @@
       border: 1px solid var(--accent-color);
       border-radius: 12px;
       padding: 20px;
-      max-width: 420px;
+      max-width: 500px;
       width: 100%;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
       position: relative;
@@ -243,16 +243,33 @@
       line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
     }
 
-    /* Кнопки нейросетей */
-    .ai-services { display: flex; gap: 10px; margin-top: 15px; }
-    .ai-link-btn {
-      flex: 1; text-align: center; padding: 10px; border-radius: 8px;
-      text-decoration: none; font-weight: bold; color: white; transition: 0.2s;
+    /* Окно ИИ-чата */
+    .ai-chat-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(176, 38, 255, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
-    .ya-btn { background: #fc3f1d; }
-    .ya-btn:hover { background: #e03517; }
-    .gpt-btn { background: #10a37f; }
-    .gpt-btn:hover { background: #0d8c6d; }
+    
+    .ai-chat-box b { color: var(--accent-color); }
+    .ai-chat-box i { color: #a5b4fc; }
+    .ai-chat-box code { background: #000; padding: 2px 5px; border-radius: 4px; color: #10b981; }
+    
+    .ai-loading {
+      color: var(--ai-color);
+      font-style: italic;
+      text-align: center;
+      padding: 20px 0;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
   </style>
 </head>
 <body>
@@ -269,7 +286,7 @@
     </div>
     <div class="nav-info">
       <span id="navInfo">Предложение 1/1</span>
-      <span class="version-tag">v2.4</span>
+      <span class="version-tag">v2.5</span>
     </div>
   </div>
 
@@ -318,23 +335,17 @@
   </div>
 </div>
 
-<!-- Модальное окно ИИ-Репетитора -->
+<!-- Модальное окно Встроенного ИИ -->
 <div class="modal" id="aiModal" onclick="closeModal('aiModal')">
   <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
-    <h3 style="color: var(--ai-color); margin-bottom: 10px;">🤖 ИИ-Репетитор</h3>
-    <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 15px;">
-      Запрос для детального разбора грамматики сформирован и <b>скопирован в буфер обмена!</b>
+    <h3 style="color: var(--ai-color); margin-bottom: 5px;">🤖 Встроенный ИИ-Репетитор</h3>
+    <p style="font-size: 0.8rem; color: var(--ru-color);">
+      Анализирую грамматику и построение текущего предложения...
     </p>
-    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; color: #a5b4fc; font-size: 0.85rem; margin-bottom: 15px; font-style: italic;">
-      <span id="aiPromptText"></span>
-    </div>
-    <p style="font-size: 0.85rem; color: var(--ru-color);">
-      Выберите нейросеть ниже. В открывшемся окне чата нажмите <b>Ctrl + V</b> (Вставить) и отправьте сообщение репетитору.
-    </p>
-    <div class="ai-services">
-      <a href="https://ya.ru/alice" target="_blank" class="ai-link-btn ya-btn">Алиса (Яндекс)</a>
-      <a href="https://chatgpt.com" target="_blank" class="ai-link-btn gpt-btn">ChatGPT</a>
+    
+    <div class="ai-chat-box" id="aiResponseContent">
+      <!-- Контент ИИ -->
     </div>
   </div>
 </div>
@@ -354,7 +365,7 @@
   let availableVoices = [];
   let selectedVoice = null;
   let speechRate = 0.9;
-  let isTransitioning = false; // Флаг для защиты от двойного перепрыгивания
+  let isTransitioning = false;
 
   const synth = window.speechSynthesis;
   const enDisplay = document.getElementById('enDisplay');
@@ -365,11 +376,7 @@
   const voiceSelect = document.getElementById('voiceSelect');
   const rateInput = document.getElementById('rateInput');
 
-  // Карта коррекции произношения для коротких слов
-  const pronunciationMap = {
-    'a': 'uh',
-    'i': 'eye'
-  };
+  const pronunciationMap = { 'a': 'uh', 'i': 'eye' };
 
   function normalizeText(text) {
     return text
@@ -424,7 +431,6 @@
         sentences = defaultSentences;
       }
     }
-
     const savedIndex = localStorage.getItem('smartbook_index');
     if (savedIndex !== null) currentIndex = parseInt(savedIndex);
 
@@ -454,15 +460,12 @@
   async function fetchContextTranslation(index) {
     ruDisplay.textContent = "Переводим...";
     const curr = sentences[index];
-
     try {
       const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(curr)}`);
       const data = await res.json();
       let fullTrans = "";
       if (data && data[0]) {
-        data[0].forEach(item => {
-          if (item[0]) fullTrans += item[0];
-        });
+        data[0].forEach(item => { if (item[0]) fullTrans += item[0]; });
       }
       ruDisplay.textContent = fullTrans || "Не удалось получить перевод";
     } catch(e) {
@@ -481,22 +484,18 @@
     document.getElementById('modalDetails').textContent = "";
     document.getElementById('wordModal').style.display = 'flex';
 
-    // Озвучка отдельного слова при клике с учетом корректировки
     let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
     speak(wordToSpeak);
 
     try {
       const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(cleanWord)}`);
       const data = await res.json();
-      
       let wordTranslation = "";
       if (data && data[0] && data[0][0] && data[0][0][0]) {
         wordTranslation = data[0][0][0];
       }
       document.getElementById('modalTrans').textContent = wordTranslation || "Перевод не найден";
-    } catch(e) {
-      document.getElementById('modalTrans').textContent = "Ошибка получения перевода";
-    }
+    } catch(e) {}
 
     try {
       const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord.toLowerCase()}`);
@@ -507,7 +506,7 @@
         if (entry.meanings) {
           entry.meanings.slice(0, 2).forEach(m => {
             if (m.definitions && m.definitions[0]) {
-              detailsHtml += `<div style="margin-top:4px;"><b>[${m.partOfSpeech}]</b> ${m.definitions[0].definition}</div>`;
+              detailsHtml += `<div style="margin-top:4px;"><b>[${m.partOfSpeech}]</b>${m.definitions[0].definition}</div>`;
             }
           });
         }
@@ -516,27 +515,57 @@
     } catch(e) {}
   }
 
-  // --- ИИ РЕПЕТИТОР ЛОГИКА ---
-  function callAITutor(e) {
+  // --- ВСТРОЕННЫЙ ИИ РЕПЕТИТОР БЕЗ ПЕРЕХОДОВ ---
+  async function callAITutor(e) {
     if (e) e.stopPropagation();
+    
     const currentEn = sentences[currentIndex];
     const currentRu = ruDisplay.textContent;
 
-    const promptText = `Выступи в роли профессионального репетитора английского языка. Объясни мне грамматику, правила построения и особенности этого предложения: "${currentEn}" (Перевод: ${currentRu}). Разбери сложные конструкции простым языком.`;
+    const aiModal = document.getElementById('aiModal');
+    const aiContent = document.getElementById('aiResponseContent');
     
-    // Копируем в буфер обмена
-    navigator.clipboard.writeText(promptText).then(() => {
-      document.getElementById('aiPromptText').textContent = promptText;
-      document.getElementById('aiModal').style.display = 'flex';
-    }).catch(err => {
-      alert("Не удалось скопировать текст. Разрешите браузеру доступ к буферу обмена.");
-    });
+    aiModal.style.display = 'flex';
+    aiContent.innerHTML = '<div class="ai-loading">Репетитор печатает ответ... ⏳</div>';
+
+    // Формируем четкий запрос к нейросети
+    const promptText = `Разбери грамматику и построение этого английского предложения: "${currentEn}" (Перевод: ${currentRu}). Напиши кратко, структурно (используй списки и выделение жирным), объясняй на русском языке. Укажи время глаголов и интересные речевые обороты, если они есть.`;
+
+    try {
+      // Используем открытый шлюз Pollinations AI (бесплатный доступ к текстовым моделям)
+      const response = await fetch("https://text.pollinations.ai/", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'Ты - профессиональный и лаконичный репетитор английского языка. Отвечай дружелюбно.' },
+            { role: 'user', content: promptText }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error("Network error");
+      
+      let text = await response.text();
+      
+      // Мини-парсер разметки Markdown (звездочки и обратные кавычки) в HTML
+      const htmlText = text
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+
+      aiContent.innerHTML = htmlText;
+
+    } catch (err) {
+      aiContent.innerHTML = '<span style="color:#ef4444;">Упс! Ошибка подключения к нейросети. Возможно, сервис временно перегружен. Попробуйте еще раз через пару минут.</span>';
+    }
   }
 
   // Слушатель глобальных клавиш (Ctrl + Space)
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.code === 'Space') {
-      e.preventDefault(); // Предотвращаем ввод пробела
+      e.preventDefault();
       callAITutor();
     }
   });
@@ -577,7 +606,6 @@
             span.classList.add('error');
           }
         }
-
         if (charIdx === typed.length && !isTransitioning) {
           span.classList.add('cursor');
         }
@@ -585,7 +613,6 @@
         wordSpan.appendChild(span);
         globalCharIndex++;
       });
-
       enDisplay.appendChild(wordSpan);
 
       if (wIdx < words.length - 1) {
@@ -601,7 +628,6 @@
             spaceSpan.classList.add('error');
           }
         }
-
         if (spaceCharIdx === typed.length && !isTransitioning) {
           spaceSpan.classList.add('cursor');
         }
@@ -611,16 +637,11 @@
       }
     });
 
-    // ИСПРАВЛЕНИЕ: Логика перехода на следующее предложение с сохранением "хвоста"
     if (typed.length >= text.length && !isTransitioning) {
-      // Переходим только если весь текст набран правильно (проверяем совпадение начала строки)
       if (typed.startsWith(text)) {
         isTransitioning = true;
-        const excessChars = typed.slice(text.length).trimStart(); // Сохраняем случайно напечатанные пробелы и буквы
-        
-        setTimeout(() => {
-          nextSentence(null, excessChars);
-        }, 300);
+        const excessChars = typed.slice(text.length).trimStart();
+        setTimeout(() => { nextSentence(null, excessChars); }, 300);
       }
     }
 
@@ -643,8 +664,6 @@
         if (currentWordIndex !== i) {
           currentWordIndex = i;
           let cleanWord = words[i].replace(/[^a-zA-Z]/g, "");
-          
-          // Применяем корректировку для коротких слов
           let wordToSpeak = pronunciationMap[cleanWord.toLowerCase()] || cleanWord;
           speak(wordToSpeak);
         }
@@ -658,7 +677,7 @@
     isTransitioning = false;
     currentIndex = Math.max(0, Math.min(index, sentences.length - 1));
     currentWordIndex = -1;
-    hiddenInput.value = excessChars; // Подставляем хвост от прошлого ввода, чтобы не терять буквы
+    hiddenInput.value = excessChars;
     localStorage.setItem('smartbook_index', currentIndex);
     fetchContextTranslation(currentIndex);
     render();
@@ -670,7 +689,7 @@
     if (currentIndex < sentences.length - 1) {
       loadSentence(currentIndex + 1, excessChars);
     } else {
-      isTransitioning = false; // Книга закончилась, снимаем блок
+      isTransitioning = false;
     }
   }
 
@@ -690,7 +709,7 @@
   }
 
   hiddenInput.addEventListener('input', () => {
-    if (isTransitioning) return; // Блокируем обработку во время визуальной паузы
+    if (isTransitioning) return;
     hiddenInput.value = cleanUserInput(hiddenInput.value);
     checkWordPronunciation();
     render();
@@ -734,9 +753,7 @@
     localStorage.setItem('smartbook_rate', speechRate);
   });
 
-  function focusInput() {
-    hiddenInput.focus();
-  }
+  function focusInput() { hiddenInput.focus(); }
 
   initData();
   loadSentence(currentIndex);
